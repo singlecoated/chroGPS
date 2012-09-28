@@ -1,0 +1,7 @@
+import(IRanges,DPpackage)
+importFrom(cluster, agnes)
+importFrom(graphics, plot)
+
+exportMethods(distGPS,procrustesAdj,adjustPeaks,mds,clusGPS,geneSetGPS,plot)
+export(adjustPeaks,distGPS,procrustesAdj,clusGPS,mds,geneSetGPS,domainDist,addVar,uniqueCount,contour2dDP,contour3dDP,plotContour,getURL,gff2RDList,boostMDS)
+exportClasses("mds","distGPS","clusGPS","hclust")

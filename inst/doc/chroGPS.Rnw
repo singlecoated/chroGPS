@@ -1,0 +1,48 @@
+\documentclass[a4paper,12pt,nogin]{article}
+%\VignetteIndexEntry{Manual for the chroGPS library}
+%\VignettePackage{chroGPS}
+
+\usepackage{amsmath}    % need for subequations
+\usepackage{amssymb}    %useful mathematical symbols
+\usepackage{bm}         %needed for bold greek letters and math symbols
+\usepackage{graphicx}   % need for PS figures
+%\usepackage{verbatim}   % useful for program listings
+%\usepackage{color}      % use if color is used in text
+\usepackage{hyperref}   % use for hypertext links, including those to external documents and URLs
+\usepackage{natbib}    %number and author-year style referencing
+%\usepackage{epsf} 
+%\usepackage{lscape} 
+%\bibpunct{(}{)}{;}{a}{,}{,}
+\usepackage[hmargin=2.5cm,vmargin=3cm]{geometry}
+
+%\pagestyle{empty} % use if page numbers not wanted
+
+\begin{document}
+
+\title{\texttt{chroGPS}: navigating though the epigenome. }
+\small
+\author{Oscar Reina \footnote{Bioinformatics \& Biostatistics Unit,
+    IRB Barcelona} and David Rossell \footnotemark[1] }
+\normalsize
+\date{}  %comment to include current date
+
+\maketitle
+
+
+\section{Introduction}
+\label{sec:intro}
+
+The \texttt{chroGPS} package provides tools go generate intuitive maps to visualize the association between genetic elements, with emphasis on epigenetics. The approach is based on Multi-Dimensional Scaling. We provide several sensible distance metrics, and adjustment procedures to remove systematic biases typically observed when merging data obtained under different technologies or genetic backgrounds.
+
+
+Many routines are designed to perform computations in parallel 
+by specifying an argument \texttt{mc.cores}, which uses
+package \texttt{multicore}. As this package is not available in all platforms, currently only Unix/Linux and Mac OS X versions of the package are supported.
+Please see the help page for each function for more details.
+
+
+You will find the full vignette for the chroGPS package with detailed examples in the
+chroGPS-manual.pdf file included in the inst/doc folder.
+
+
+\end{document}
