@@ -35,20 +35,20 @@ setMethod("distGPS", signature(x='RangedDataList'), function(x, metric='tanimoto
 
 ## Auxiliary routines
 tanipair <- function(z1,z2) { # Not exactly tanimoto, deprecated
-  n1 <- sum(sum(z1 %in% z2))
-  n2 <- sum(sum(z2 %in% z1))
+  n1 <- sum(sum(z1 %over% z2))
+  n2 <- sum(sum(z2 %over% z1))
   (n1+n2)/(nrow(z1)+nrow(z2))
 }
 
 realtanipair <- function(z1,z2) { # REAL tanimoto pair
-  n1 <- sum(sum(z1 %in% z2))
-  n2 <- sum(sum(z2 %in% z1))
+  n1 <- sum(sum(z1 %over% z2))
+  n2 <- sum(sum(z2 %over% z1))
   (.5*(n1+n2))/(nrow(z1)+nrow(z2) - (.5*(n1+n2)))
 }
 
 avgdistpair <- function(z1,z2) {
-  n1 <- sum(sum(z1 %in% z2))
-  n2 <- sum(sum(z2 %in% z1))
+  n1 <- sum(sum(z1 %over% z2))
+  n2 <- sum(sum(z2 %over% z1))
   .5*(n1/nrow(z1) + n2/nrow(z2))
 }
 
