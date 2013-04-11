@@ -861,9 +861,9 @@ distribution of epigenetic factors seen in Figure \ref{fig:merge2}.
 p1 <- profileClusters(s2.tab, uniqueCount = TRUE, clus3,i=max(cutree(h,h=0.2)), 
 log2 = TRUE, plt = FALSE, minpoints=0)
 # Requires gplots library
-# library(gplots)
-# heatmap.2(p1[,1:20],trace='none',col=bluered(100),margins=c(10,12),symbreaks=TRUE,
-#Rowv=FALSE,Colv=FALSE,dendrogram='none')
+library(gplots)
+heatmap.2(p1[,1:20],trace='none',col=bluered(100),margins=c(10,12),symbreaks=TRUE,
+Rowv=FALSE,Colv=FALSE,dendrogram='none')
 @
 
 \normalsize
