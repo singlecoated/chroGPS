@@ -982,6 +982,6 @@ distances between the original elements intact. For three-dimensional maps Cytos
 And this is everything, hope you enjoy using chroGPS as much as we did developing it !
 
 \bibliographystyle{plainnat}
-\bibliography{/Volumes/biostats/oreina/references/references} 
+\bibliography{references} 
 
 \end{document}
