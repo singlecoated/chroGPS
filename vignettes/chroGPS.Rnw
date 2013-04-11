@@ -850,7 +850,7 @@ ylab='CCR',xlab='Cluster ID')
 
 A classical way of analyzing a group epigenes is to look at the
 distribution of their epigenetic marks, that is, looking at their
-epigenetic profile. A quick look into a heatmap-like plot can
+epigenetic profile. A quick look into a heatmap-like plot produced with the \texttt{heatmap.2} function from the \texttt{gplots} package can
 highlight specific enrichments or depletions of certain epigenetic
 factors in a given cluster. As expected, this matches the 
 distribution of epigenetic factors seen in Figure \ref{fig:merge2}.
@@ -860,9 +860,10 @@ distribution of epigenetic factors seen in Figure \ref{fig:merge2}.
 <<figprofile1>>=
 p1 <- profileClusters(s2.tab, uniqueCount = TRUE, clus3,i=max(cutree(h,h=0.2)), 
 log2 = TRUE, plt = FALSE, minpoints=0)
-library(gplots)
-heatmap.2(p1[,1:20],trace='none',col=bluered(100),margins=c(10,12),symbreaks=TRUE,
-Rowv=FALSE,Colv=FALSE,dendrogram='none')
+# Requires gplots library
+# library(gplots)
+# heatmap.2(p1[,1:20],trace='none',col=bluered(100),margins=c(10,12),symbreaks=TRUE,
+#Rowv=FALSE,Colv=FALSE,dendrogram='none')
 @
 
 \normalsize
