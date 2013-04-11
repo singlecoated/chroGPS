@@ -1,0 +1,25 @@
+### Package suffered major revisions since version 1.3 ###
+
+Major changes from Version 1.3, mainly affecting the clusGPS function
+
+- Removed existing distance transformation before clustering if no clustering object was provided
+- Changes in the behaviour of clusGPS function, it can only be used with an external precomputed clustering object now
+- Added preMerging to clusGPS step to ensure a minimum epigenetic cluster size
+- Added function mergeClusters to perform unsupervised cluster merging based on spatial overlap and changepoint detection
+- Posterior probabilities of clusters are now adjusted on the fly (much faster)
+- Posterior probabilities are now weighted according to the size of each cluster
+- New function to profile epigenetic clusters
+- Moved grid density calculation out of clusGPS function
+- Updated plot method for clusGPS objects
+
+Other changes from Version 1.3
+
+- Added function to export chroGPS maps to Cytoscape
+- Added dynamic vignette with code for replicating toy analysis
+- Added accessor functions for S4 classes
+- Added stress measure for goodnes-of-fit of MDS objects
+- Fixed bugs in R-Square calculation of some distance metrics
+- Changed the available data object and object names
+- Introduced mahalanobis distance in distGPS
+- Updated examples and documentation
+- Fixed bug in boostMDS, not properly using random seed in all cases

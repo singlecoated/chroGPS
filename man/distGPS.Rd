@@ -59,7 +59,8 @@ distGPS(x, metric='tanimoto', uniqueRows=FALSE, genomelength=NULL, mc.cores=1)
     prior to distance calculation. This can save substantial computing
     time and memory. Notice however that the dimension of the distance
     matrix is equal to the number of unique rows in \code{x}, instead of
-  \code{nrow(x)}.}
+    \code{nrow..
+      (x)}.}
   \item{genomelength}{For 'chi' and 'chisquare' metrics, numeric value
     indicating the length of the genome. If not given the function
     uses the minimum length necessary to fit the total length of the result.}
@@ -128,4 +129,5 @@ mds1 <- mds(d)
 mds1
 plot(mds1)
 }
-\keyword{multivariate,cluster}
+\keyword{multivariate}
+\keyword{clustering}

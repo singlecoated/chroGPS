@@ -41,19 +41,14 @@ geneSetGPS(x, m, genes, uniqueCount = TRUE, ...)
 Oscar Reina
 }
 \examples{
-# Not run, see further examples in chroGPS-manual.pdf document
-# data(geneSample)
-# # Non-unique rows
-# d <- distGPS(geneSample,metric='tanimoto',uniqueRows=FALSE)
+# Not run
+# data(s2)
+# d <- distGPS(s2.tab,metric='tanimoto',uniqueRows=TRUE)
 # mds1 <- mds(d)
-# pts <- geneSetGPS(geneSample,mds1,c('FBgn0051048','FBgn0010406','FBgn0034642'),uniqueCount=FALSE)@points
+# set.seed(149)
+# sampleGenes <- rownames(s2.tab)[sample(1:nrow(s2.tab),10,rep=FALSE)]
+# pts <- geneSetGPS(s2.tab,mds1,genes=sampleGenes,uniqueCount=TRUE)
 # plot(mds1)
-# points(pts,col='red',cex=3)
-# # Unique rows
-# d <- distGPS(geneSample,metric='tanimoto',uniqueRows=TRUE)
-# mds1 <- mds(d)
-# plot(mds1)
-# pts <- geneSetGPS(geneSample,mds1,c('FBgn0051048','FBgn0010406','FBgn0034642'),uniqueCount=TRUE)@points
-# points(pts,col='red',cex=3)
+# points(getPoints(pts),col='red',cex=3)
 }
 \keyword{ graphics }

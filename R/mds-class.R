@@ -1,22 +1,29 @@
-setClass("mds", representation(points="matrix", R.square="numeric"))
+setClass("mds", representation(points="matrix", Type="character", Adj="logical", R.square="numeric", stress="numeric"))
 
 ## SHOW
 setMethod("show","mds",function(object) {
 cat("Object of class MDS approximating distances between", nrow(object@points), "objects \n")
-cat("R-squared=",round(object@R.square,4), "\n")
+cat("R-squared=",round(object@R.square,4), "Stress=",round(object@stress,4),"\n")
 }
 )
 
-plotContour <- function(x,probContour=.5,labels='',xlim,ylim,labcex=1,col='red',lwd=2,lty=1,...)
+# New accessors
+setGeneric("type", function(m) standardGeneric("type")); setMethod("type","mds",function(m) m@Type)
+setGeneric("is.adj", function(m) standardGeneric("is.adj")); setMethod("is.adj","mds",function(m) m@Adj)
+setGeneric("getR2", function(m) standardGeneric("getR2")); setMethod("getR2","mds",function(m) m@R.square)
+setGeneric("getStress", function(m) standardGeneric("getStress")); setMethod("getStress","mds",function(m) m@stress)
+setGeneric("getPoints", function(m) standardGeneric("getPoints")); setMethod("getPoints","mds",function(m) m@points)
+  
+plotContour <- function(x,probContour=.5,drawlabels=FALSE,labels='',xlim,ylim,labcex=1,col='red',lwd=2,lty=1,...)
           {
             prob <- x$dens/sum(x$dens)
             probo <- prob[order(prob)]
             cutoff <- probo[match(TRUE,cumsum(probo) > 1-probContour)]
-            contour(x=x$grid1,y=x$grid2,z=matrix(x$dens,nrow=length(x$grid1),ncol=length(x$grid2)),levels=cutoff*sum(x$dens),labels=labels,xlim=xlim,ylim=ylim,
-              labcex=labcex,col=col,lwd=lwd,axes=FALSE,lty=lty,add=TRUE,plot.axes=FALSE)
+            contour(x=x$grid1,y=x$grid2,z=matrix(x$dens,nrow=length(x$grid1),ncol=length(x$grid2)),levels=cutoff*sum(x$dens),drawlabels=drawlabels,labels=labels,xlim=xlim,ylim=ylim,
+                    labcex=labcex,col=col,lwd=lwd,axes=FALSE,lty=lty,add=TRUE,plot.axes=FALSE)
           }
 
-contour2dDP <- function(x, ngrid, grid=NULL, probContour=0.5,xlim,ylim,labels='',labcex=.01,col=colors()[393],lwd=4,lty=1,contour.type='single',contour.fill=FALSE,...) {
+contour2dDP <- function(x, ngrid, grid=NULL, probContour=0.5,xlim,ylim,labels='',labcex=.01,col=colors()[393],lwd=4,lty=1,contour.type='single',contour.fill=FALSE,minpoints=100,...) {
   #Contour of 2-dimensional distribution based on Dirichlet Process density estimation
   if (missing(xlim)) xlim <- range(x[,1])
   if (missing(ylim)) ylim <- range(x[,2])
@@ -50,30 +57,30 @@ contour2dDP <- function(x, ngrid, grid=NULL, probContour=0.5,xlim,ylim,labels=''
   else warning('Invalid contour type')
 }
 
-contour3dDP <- function(x, col='red', probContour=0.5, ngrid=30, contour.type='none') {
-  #Multivariate density fit
-  xdf <- data.frame(x)
-  fit <- ssden(~X1*X2*X3,data=xdf)
-  #Estimate density on a grid
-  xseq1 <- seq(min(x[,1]),max(x[,1]),length=ngrid)
-  xseq2 <- seq(min(x[,2]),max(x[,2]),length=ngrid)
-  xseq3 <- seq(min(x[,3]),max(x[,3]),length=ngrid)
-  xgrid <- expand.grid(xseq1,xseq2,xseq3)
-  names(xgrid) <- names(xdf)
-  dens <- dssden(fit, x=xgrid)
-  #Select set of points with probContour probability
-  probCutoff <- function(cutoff) sum(prob[prob>cutoff])
-  prob <- dens/sum(dens)
-  cutseq <- seq(min(prob),max(prob),length=100)
-  probcutseq <- sapply(as.list(cutseq),probCutoff)
-  cutoff <- cutseq[which.min(abs(probcutseq-probContour))]
-  xsel <- xgrid[prob>cutoff,]
-  #Find convex hull of selected points  
-  contourx <- convhulln(xsel, options = "Tv")
-  contourx <- list(highDensPoints=xsel,convhull=contourx)
-  if (type=='contours') for (i in 1:nrow(contourx$convhull)) rgl.triangles(contourx$highDensPoints[contourx$convhull[i,],],col=col,alpha=.5)
-  return(list(dens=dens,prob=prob,contour=contourx))
-}
+### contour3dDP <- function(x, col='red', probContour=0.5, ngrid=30, contour.type='none') {
+###   #Multivariate density fit
+###   xdf <- data.frame(x)
+###   fit <- ssden(~X1*X2*X3,data=xdf)
+###   #Estimate density on a grid
+###   xseq1 <- seq(min(x[,1]),max(x[,1]),length=ngrid)
+###   xseq2 <- seq(min(x[,2]),max(x[,2]),length=ngrid)
+###   xseq3 <- seq(min(x[,3]),max(x[,3]),length=ngrid)
+###   xgrid <- expand.grid(xseq1,xseq2,xseq3)
+###   names(xgrid) <- names(xdf)
+###   dens <- dssden(fit, x=xgrid)
+###   #Select set of points with probContour probability
+###   probCutoff <- function(cutoff) sum(prob[prob>cutoff])
+###   prob <- dens/sum(dens)
+###   cutseq <- seq(min(prob),max(prob),length=100)
+###   probcutseq <- sapply(as.list(cutseq),probCutoff)
+###   cutoff <- cutseq[which.min(abs(probcutseq-probContour))]
+###   xsel <- xgrid[prob>cutoff,]
+###   #Find convex hull of selected points  
+###   contourx <- convhulln(xsel, options = "Tv")
+###   contourx <- list(highDensPoints=xsel,convhull=contourx)
+###   if (type=='contours') for (i in 1:nrow(contourx$convhull)) rgl.triangles(contourx$highDensPoints[contourx$convhull[i,],],col=col,alpha=.5)
+###   return(list(dens=dens,prob=prob,contour=contourx))
+### }
 
 ### EXAMPLE
 ### ### 3D
@@ -86,10 +93,10 @@ contour3dDP <- function(x, col='red', probContour=0.5, ngrid=30, contour.type='n
 
 setMethod("plot", signature(x="mds"), function(x,drawlabels=FALSE,labels,plantar=FALSE, # Type of plot
                                       #contour=FALSE,contour.only=FALSE,contour.type='single',contour.fill=FALSE,clus,k,contour.sel,contour.col=rainbow(length(unique(contour.sel))),contour.prob=0.75, # Contour info
-                                      point.cex=1,text.cex=1,text.pos=NULL,point.col='blue',text.col='black',point.pch=20,type.3d='p',radius=point.cex/(.05*nrow(x@points)),app='fill',alpha=0.5, # Graphics info
-                                      scalecol=FALSE,scale,palette=terrain.colors(100,alpha=alpha),...) { # Scale color info
+                                      point.cex=1,text.cex=1,text.pos=NULL,point.col='grey',text.col='black',point.pch=20,type.3d='p',radius=point.cex/(.05*nrow(x@points)),app='fill',alpha=0.5, # Graphics info
+                                      scalecol=FALSE,scale,palette=terrain.colors(100,alpha=alpha),xlim,ylim,zlim,...) { # Scale color info
   # Limits for the plot window
-  xlim <- 1.2*range(x@points)
+  if (missing(xlim)) xlim <- ylim <- zlim <- 1.2*range(x@points)
   # Labels if needed
   if (drawlabels & missing(labels)) labels <- rownames(x@points)
   # Overriding colors if scale color is chosen (for expression, mark density, etc)
@@ -102,13 +109,13 @@ setMethod("plot", signature(x="mds"), function(x,drawlabels=FALSE,labels,plantar
   # One-dimensional MDS (points along one axis)
   if (ncol(x@points)==1) {
     if (plantar) warning('Plantar views only available for 3D maps')
-    plot(x=x@points[,1], y=rep(0,nrow(x@points)), xlim=xlim, ylim=xlim, xlab='', ylab='', col=point.col, cex=point.cex, pch=point.pch,...)
+    plot(x=x@points[,1], y=rep(0,nrow(x@points)), xlim=xlim, ylim=ylim, xlab='', ylab='', col=point.col, cex=point.cex, pch=point.pch,...)
     if (drawlabels) text(x@points, rep(0,2), labels,  col=text.col, cex=text.cex, pos=text.pos,...)
   }
   # Two-dimensional MDS
   else if (ncol(x@points)==2) {
     if (plantar) warning('Plantar views only available for 3D maps')
-    plot(x@points, xlim=xlim,ylim=xlim,xlab='',ylab='', col=point.col, cex=point.cex, pch=point.pch,...)
+    plot(x@points, xlim=xlim,ylim=ylim,xlab='',ylab='', col=point.col, cex=point.cex, pch=point.pch,...)
     if (drawlabels) text(x@points[,1],x@points[,2],labels, col=text.col, cex=text.cex, pos=text.pos,...)
   }
   # Three-dimensional MDS (3D with RGL and multiple 2D with plantar views of 2-axis combinations)
@@ -123,10 +130,10 @@ setMethod("plot", signature(x="mds"), function(x,drawlabels=FALSE,labels,plantar
     }
     else {
       if ('rgl' %in% loadedNamespaces()) {
-        plot3d(x@points, type='p', radius=radius, xlim=xlim,ylim=xlim,zlim=xlim,xlab='',ylab='',zlab='', col=point.col, cex=point.cex, alpha=0.5, ...) # point.cex/(2*nrow(x@points))
+        plot3d(x@points, type='p', radius=radius, xlim=xlim,ylim=ylim,zlim=xlim,xlab='',ylab='',zlab='', col=point.col, cex=point.cex, alpha=0.5, ...) # point.cex/(2*nrow(x@points))
         if (drawlabels) text3d(x@points[,1],x@points[,2],x@points[,3],texts=labels, col=text.col, cex=text.cex, pos=text.pos,...) # Draw labels before spheres to make them visible
         if (type.3d=='s') spheres3d(x@points, radius=radius, xlim=xlim,ylim=xlim,zlim=xlim,xlab='',ylab='',zlab='', col=point.col, cex=point.cex, alpha=0.5, ...) # point.cex/(2*nrow(x@points))
-        #if (type.3d=='spheres') spheres3d(x@points, xlim=xlim,ylim=xlim,zlim=xlim,xlab='',ylab='',zlab='', col=point.col, radius=point.cex/(2*nrow(x@points)),alpha=alpha,front='fill',back='fill',...)
+        #if (type.3d=='spheres') spheres3d(x@points, xlim=xlim,ylim=ylim,zlim=xlim,xlab='',ylab='',zlab='', col=point.col, radius=point.cex/(2*nrow(x@points)),alpha=alpha,front='fill',back='fill',...)
       } else stop('rgl library has not been loaded!')
     }
   }

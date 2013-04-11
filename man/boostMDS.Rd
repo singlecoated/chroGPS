@@ -7,7 +7,7 @@
   until converged is reached for a given threshold.
 }
 \usage{
-boostMDS(D, Y, rate = 0.1, maxit = 50, tol = 0.001, samplesize = 1,
+boostMDS(D, Y, rate = 0.01, maxit = 50, tol = 0.001, samplesize,
 verbose = TRUE, scale = FALSE, seed = 149, plt = FALSE, mc.cores = 1)
 }
 \arguments{
@@ -28,8 +28,11 @@ verbose = TRUE, scale = FALSE, seed = 149, plt = FALSE, mc.cores = 1)
     Tolerace for R-square convergence.
   }
   \item{samplesize}{
-    If a big MDS is given, point resampling can be done in order to
-    speed up the process, use values in (0,1].
+    When there are over 100 points to represent, the gradiend descent step size is determined
+    using a fraction \code{samplesize} of the original data points.
+    By default 0.01 with a minimum of 100 points, which typically gives
+    very stable results. Setting large \code{samplesize} can
+    significantly increase the computational cost.
   }
   \item{verbose}{
     Give details of the gains in R-square and step size.

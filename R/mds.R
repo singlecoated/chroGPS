@@ -1,35 +1,21 @@
 # auxiliary functions
 
-boostMDS <- function(D, Y, rate=.1, maxit=50, tol=0.001, samplesize=1, verbose=TRUE, scale=FALSE, seed=149, plt=FALSE, mc.cores=1) {
+boostMDS <- function(D, Y, rate=.01, maxit=50, tol=0.001, samplesize, verbose=TRUE, scale=FALSE, seed=149, plt=FALSE, mc.cores=1) {
 # boostMDS, based on HITMDS High-Throughput Dimensional Scaling (HiT-MDS), see http://dig.ipk-gatersleben.de/hitmds/hitmds.html
 # Introduction of a quadratic step size grid search 
 # Introduced paralellization and estimation of step size by resampling the original points when big MDS are used
 #
-# Y = hitmds(D, Y, n_dim, rate, maxit, plt)
-#
-# Embed dissimilarity matrix D into n_dim -dimensional Euclidean vector space.
-#
 # Arguments:
 # D - source dissimilarity matrix
-# Y  - initial target point configuration, leave empty {} for auto-init
-# rate - try values {0.1 1 10 100} for optimum embedding, start using rate=1
+# Y  - initial target point configuration
+# rate - step size parameter
 # maxit - maximum number of iterations
 # tol - tolerance for the objective function.
+# samplesize - fraction of data points to use to determine step size. Number of points > 100
 #
 # Return:
 # Y - non-standardized embedded points (apply stdscatter for standardization)
 #
-# Watch value output after each iteration. The higher, the better.
-# 0 means perfect mismatch of embedded data relations with D
-# 1 means perfect reconstruction, i.e. most trustful embedding result.
-#
-# Severals runs are advisable for selecting optimum embedding results.
-#
-#
-# Author:      Marc Strickert
-# Institution: Leibniz-Institute of Crop Plant Research, IPK-Gatersleben
-# Date:  Wed Feb 25 13:15:25     2009
-# Licence:     GPLv2; not for use in critical applications
   if (scale) Y <- scale(Y,center=TRUE,scale=TRUE)
   n_dim <- ncol(Y)
   if(!is.matrix(D))
@@ -50,11 +36,16 @@ boostMDS <- function(D, Y, rate=.1, maxit=50, tol=0.001, samplesize=1, verbose=T
   pnt_del <- Y
   T <- D
   # Prepare resampling if necessary
+  sel <- 1:nrow(D)
+  if (missing(samplesize)) samplesize <- 0.01
   if (samplesize<1)
     {
-      set.seed <- seed
-      sel <- sample(1:nrow(D),floor(nrow(D)*samplesize),replace=FALSE)
-      cat("\nSampling for ",length(sel),"elements")
+      set.seed(seed)
+      nsample <- ifelse(samplesize*nrow(D)<100, 100, floor(samplesize*nrow(D)))
+      if (nsample < nrow(D)) {
+        cat("\nSampling ",nsample,"elements...\n")
+        sel <- sample(sel,nsample,replace=FALSE)
+      }
     } 
   targetf <- function(r,resample=FALSE) {
     if (resample) {
@@ -138,9 +129,21 @@ boostMDS <- function(D, Y, rate=.1, maxit=50, tol=0.001, samplesize=1, verbose=T
   #return(new("mds",points=Y,R.square=r2)) # Since resampling is allowed, this r2 would be the one for the sample and not for the whole MDS
 } # function
 
-setGeneric("mds", function(d,m=NULL,k=2,type='classic',add=FALSE,cor.method='pearson',splitMDS=FALSE,split=0.05,overlap=0.0025,reshuffle=TRUE,set.seed=149,mc.cores=1,...) standardGeneric("mds"))
+stress <- function(dr,da,tri=FALSE)
+{
+  if(tri) {
+    dr=dr[upper.tri(dr)]
+    da=da[upper.tri(da)]
+  }
+  sum((da-dr)^2) / sum(dr^2)
+}
 
-setMethod("mds", signature=c(d="distGPS",m="missing"), function(d,m=NULL,k=2,type='classic',add=FALSE,cor.method='pearson',splitMDS=FALSE,split=0.05,overlap=0.0025,reshuffle=TRUE,set.seed=149,mc.cores=1,...) {
+setGeneric("mds", function(d,m=NULL,k=2,type='classic',add=FALSE,cor.method='pearson',splitMDS=FALSE,split=0.26,overlap=0.025,stepSize=0.01,reshuffle=TRUE,set.seed=149,mc.cores=1,...) standardGeneric("mds"))
+
+setMethod("mds", signature=c(d="distGPS",m="missing"),
+          function(d,m=NULL,k=2,type='classic',add=FALSE,cor.method='pearson',splitMDS=FALSE,split=0.26,overlap=0.025,stepSize=0.01,reshuffle=TRUE,set.seed=149,mc.cores=1,...) {
+  metric <- d@metric
+  #maptype <- d@type
   if (splitMDS)
     {
       dsplit <- splitDistGPS(d,split=split,overlap=overlap,reshuffle=reshuffle,set.seed=set.seed,mc.cores=mc.cores)
@@ -157,32 +160,59 @@ setMethod("mds", signature=c(d="distGPS",m="missing"), function(d,m=NULL,k=2,typ
       if (add) ans <- ans$points
     } else if (type=='isoMDS') {
       ans <- isoMDS(d, k=k, maxit=50, trace=FALSE)$points
-    } else if (type=='boostMDS') {
-      cat('\nPerforming boostMDS without initial configuration. Classic MDS will be used\n')
-      ans <- boostMDS(d, Y=cmdscale(as.dist(d), k=k, add=add),...)
-    } else {
-      stop('Available MDS type for a distance matrix are: classic, isoMDS, boostMDS')
+    }
+    # Deprecated, since only possible behaviour with signature distGPS,mds is performing a boostMDS
+    #else if (type=='boostMDS') {
+    #  cat('\nPerforming boostMDS without initial configuration. Classic MDS will be used\n')
+    #  ans <- boostMDS(d, Y=cmdscale(as.dist(d), k=k, add=add), rate=stepSize,...)
+    #}
+    else {
+      stop('Available MDS type for signature distGPS are: classic, isoMDS')
     }
   }
-  dapprox <- dist(ans, method='euclidean')
-  dapprox <- as.matrix(dapprox)
-  R.square <- ifelse(nrow(d)==2, 1, cor(d[upper.tri(d)], dapprox[upper.tri(dapprox)], method=cor.method)^2)
-  new("mds", points=ans, R.square=R.square)
+  dapprox <- as.matrix(dist(ans, method='euclidean'))
+  #if (metric == 'chisquare') d <- log(d) # If chisquare metric is used, compute log distances to make distances less unbalanced
+  if (type=='isoMDS') # If isoMDS of a factors map, compute scale factor so that dr and dapprox have the same dynamic range
+    {
+      # Old computation mode with linear model, takes forever to compute if used with big MDS objects, that is because it stores the residues...
+      #c <- coef(lm(d[upper.tri(d)]~-1+dapprox[upper.tri(dapprox)]))
+      # New computation
+      c <- sum(dapprox[upper.tri(dapprox)]*d[upper.tri(d)])/sum(dapprox[upper.tri(dapprox)]^2)
+      dapprox <- dapprox * c
+      ans <- ans * c # For isoMDS compute coordinate rescaling so that now real distances are comparable with those seen on the map scales
+    }
+  # Compute RSquare with log distances instead of raw distances if metric is chisquare
+  if (metric == 'chisquare') R.square <- ifelse(nrow(d)==2, 1, cor(log(d[upper.tri(d)]), log(dapprox[upper.tri(dapprox)]), method=cor.method)^2)
+  else R.square <- ifelse(nrow(d)==2, 1, cor(d[upper.tri(d)], dapprox[upper.tri(dapprox)], method=cor.method)^2)
+  stress <- ifelse(nrow(d)==2, 1, stress(d[upper.tri(d)],dapprox[upper.tri(dapprox)]))
+  # Revert possible reshuffling in mds elements
+  # if (splitMDS==TRUE) if ((rownames(d)!=NULL) & (unique(rownames(ans) %in% rownames(d))==TRUE)) ans <- ans[rownames(d),]
+  new("mds", points=ans, Type=type, Adj=FALSE, R.square=R.square, stress=stress)
 }
 )
 
-setMethod("mds", signature=c(d="distGPS",m="mds"), function(d,m,type='boostMDS',...) {
-# boostMDS
-  if (type != c('boostMDS')) stop('Only boostMDS type is available if an input MDS configuration is given')
+setMethod("mds", signature=c(d="distGPS",m="mds"), function(d,m,type='classic',stepSize=0.01,...) {
+# boostMDS, ensures R2 optimization
+  #if (type != c('boostMDS')) stop('Only boostMDS type is available if an input MDS configuration is given')
+  if (missing(type)) if ('type' %in% slotNames(m)) if (m@type=='isoMDS') type <- m@type else type <- '' # If type of MDS is not there, try to get it from the slot (for backwards compatibility)
   d@d <- d@d[rownames(m@points),rownames(m@points)] # Reindex internally with rownames from m@points for correct calculation of r2
-  ans <- boostMDS(d@d, Y=m@points, ...)
+  ans <- boostMDS(d@d, Y=m@points, rate=stepSize,...)
   dapprox <- dist(ans, method='euclidean')
   dapprox <- as.matrix(dapprox)
-  R.square <- ifelse(nrow(d@d)==2, 1, cor(d@d[upper.tri(d@d)], dapprox[upper.tri(dapprox)], method=cor.method)^2)
-  new("mds", points=ans, R.square=R.square)
+  #if (d@metric == 'chisquare') d@d <- log(d@d) # If chisquare metric is used, compute log distances to normalize values
+  # Always compute scale factor so that dr and dapprox have the same dynamic range
+  c <- sum(dapprox[upper.tri(dapprox)]*d@d[upper.tri(d@d)])/sum(dapprox[upper.tri(dapprox)]^2)
+  dapprox <- dapprox * c
+  ans <- ans * c # For isoMDS compute coordinate rescaling so that now real distances are comparable with those seen on the map scales
+  # Compute RSquare with log distances instead of raw distances if metric is chisquare
+  if (d@metric == 'chisquare') R.square <- ifelse(nrow(d@d)==2, 1, cor(log(d@d[upper.tri(d@d)]), dapprox[upper.tri(dapprox)], method=cor.method)^2)
+  else R.square <- ifelse(nrow(d@d)==2, 1, cor(d@d[upper.tri(d@d)], dapprox[upper.tri(dapprox)], method=cor.method)^2)
+  stress <- ifelse(nrow(d@d)==2, 1, stress(d@d[upper.tri(d@d)],dapprox[upper.tri(dapprox)]))
+  new("mds", points=ans, Type=type, Adj=FALSE, R.square=R.square, stress=stress)
 }
 )
 
+# This method should be deprecated, we directly call splitMDS instead
 setMethod("mds", signature=c(d="splitDistGPS",m="missing"), function(d,k=2,type='classic',plt=FALSE,mc.cores=1,...) {    
   ans <- splitMDS(d,k=k,type=type,plt=plt,mc.cores=mc.cores)
   ans
@@ -205,13 +235,13 @@ splitMDS <- function(d,k=2,type='classic',plt=FALSE,mc.cores=1)
       mpr <- rbind(mpr,pr$Y2rot)
       if (plt) plot(mpr)
     }
-  new("mds",points=mpr,R.square=mean(unlist(lapply(m,function(x) x@R.square))))
+  new("mds",points=mpr,Type=type,Adj=FALSE,R.square=mean(unlist(lapply(m,function(x) x@R.square))),stress=mean(unlist(lapply(m,function(x) x@stress))))
   #new("mds",points=mpr,R.square=NA)
 }
 
-# Procrustes function to match anchor points in different MDSs (Consider using the ProcrustesAdj)
+# Procrustes function taken from package vegan_2.0.1 and modified to match anchor points in different MDSs
 mergeMDS <- function (X, Y, Y2, scale = TRUE, symmetric = FALSE, scores = "sites", ...)
-# Procrustes modified to rotate additinal matrix. X and Y are the matching elements, Y2 has also the Y elements no matching X
+# Procrustes modified to rotate additional matrix. X and Y are the matching elements, Y2 has also the Y elements no matching X
 {
     if (ncol(X) < ncol(Y)) {
         warning("X has fewer axes than Y: X adjusted to comform Y\n")

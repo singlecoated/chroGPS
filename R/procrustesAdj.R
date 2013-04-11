@@ -6,6 +6,7 @@ setMethod("procrustesAdj", signature(mds1='mds',d='distGPS'), function(mds1, d, 
   # Get contents of distGPS and mds objects
   x <- mds1@points
   d <- d@d
+  if ('type' %in% slotNames(mds1)) type <- mds1@Type else type <- ''
   adjust <- gsub('_','',adjust)
   #If single sample available several times for the same value of the adjustment factor, average them
   g <- paste(sampleid,adjust,sep='_')
@@ -50,7 +51,12 @@ setMethod("procrustesAdj", signature(mds1='mds',d='distGPS'), function(mds1, d, 
   }
   dapprox <- as.matrix(dist(x,method='euclid'))
   R.square <- cor(d[upper.tri(d)],dapprox[upper.tri(dapprox)],use='complete.obs')
-  ans <- new("mds",points=x,R.square=R.square)
+  dr <- d[upper.tri(d)]
+  sel <- !is.na(dr)
+  dr <- dr[sel]
+  dapprox <- dapprox[upper.tri(dapprox)][sel]
+  stress <- ifelse(nrow(d)==2, 1, stress(dr,dapprox))
+  ans <- new("mds",points=x,Type=type,Adj=TRUE,R.square=R.square,stress=stress)
   return(ans)
 }
 )

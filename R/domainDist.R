@@ -1,3 +1,29 @@
+# package caTools doesn't export the combs function correctly in all its versions, so we copy it directly here
+# see info from combs function from caTools package for more info.
+# combs function from caTools version 1.12
+combs <- function (v, k) 
+{
+    n = length(v)
+    if (n == k) 
+        P = matrix(v, 1, n)
+    else if (k == 1) 
+        P = matrix(v, n, 1)
+    else if (k == n - 1) 
+        P = matrix(rep(v, each = n - 1), n, n - 1)
+    else if (k < n) {
+        P = matrix(0, 0, k)
+        if (k < n & k > 1) {
+            for (i in 1:(n - k + 1)) {
+                Q = combs(v[(i + 1):n], k - 1)
+                j = nrow(Q)
+                P = rbind(P, cbind(rep(v[i], j), Q))
+            }
+        }
+    }
+    else stop("combs: number m has to be smaller or equal to length of vector v")
+    return(P)
+}
+
 domainDist <- function(d,gps='factors',domain,type='intra',col='white',avg=FALSE,plot=TRUE, ...)
 # Returns intra or interdomain distances, d is a distance matrix as returned by distGPS.
   {

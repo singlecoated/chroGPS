@@ -47,14 +47,10 @@ plot=TRUE, ...)
   List of inter or intra domain distances.
 }
 \examples{
-# Not run, see further examples in chroGPS-manual.pdf document
-# data(sl2)
-# data(bg3)
-# d1 <- distGPS(sl2,metric='avgdist',mc.cores=8)
-# d2 <- distGPS(c(sl2,bg3),metric='avgdist',mc.cores=8)
-# domains.sl2 <- as.character(sl2names$Color)
-# domains.bg3 <- as.character(bg3names$Color)
-# dd.sl2 <- domainDist(d1@d,gps='factors',domain=domains.sl2,type='intra',col=sort(unique(domains.sl2)),avg=TRUE,main='SL2')
-# dd.sl2.bg3 <- domainDist(d2@d,gps='factors',domain=c(domains.sl2,domains.bg3),type='intra',col=sort(unique(domains.sl2)),avg=TRUE,main='SL2/BG3')
+# Not run
+# data(s2)
+# d <- distGPS(s2,metric='avgdist',mc.cores=1)
+# d.intra <- domainDist(as.matrix(d),domain=s2names$Color,type='intra',plot=TRUE)
+# d.inter <- domainDist(as.matrix(d),domain=s2names$Color,type='inter',plot=TRUE)
 }
 \keyword{multivariate,cluster}

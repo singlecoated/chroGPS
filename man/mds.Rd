@@ -4,6 +4,14 @@
 \alias{mds,distGPS,missing-method}
 \alias{mds,splitDistGPS,missing-method}
 \alias{plot,mds,ANY-method}
+\alias{getR2}
+\alias{getStress}
+\alias{getPoints}
+\alias{is.adj}
+\alias{getR2,mds-method}
+\alias{getStress,mds-method}
+\alias{getPoints,mds-method}
+\alias{is.adj,mds-method}
 \title{
   Metric and non-metric Multidimensional Scaling for a distGPS object. 
 }
@@ -14,7 +22,11 @@
   algorithm for improving r-square correlation between observed and
   approximated distances. The MDS calculation for a given distance
   matrix can be splitted into smaller individual tasks and run in
-  parallel, greatly improving CPU time and system memory usage.
+  parallel, greatly improving CPU time and system memory usage. The S4
+  accessor functions \code{getR2, getStress, getPoints} retrieve R-square correlation, stress and points stored within a
+  \code{mds} object respectively. The function \code{is.adj} is useful
+  to know if a certain chroGPS MDS map has been adjusted by Procrustes
+  or not (see help for \code{procrustesAdj} for details.)
 }
 \section{Methods}{
   \describe{
@@ -25,12 +37,16 @@
       observed dissimilarities in \code{d} and a valid spatial
       representation of them in \code{m}, the function returns a
       \code{mds} object with an optimized representation of \code{d} in
-      terms of R-square. See help for \code{boostMDS} for details.}
+      terms of R-square. The MDS stress measure is also
+      returned. See help for \code{boostMDS} for details.}
     \item{plot}{\code{signature(m = "mds")}: S4 plot method for
       \code{mds} objects. }
 }}
 \usage{
-mds(d, m = NULL, k = 2, type = "classic", add = FALSE, cor.method = "pearson", splitMDS = FALSE, split = 0.05, overlap = 0.0025, reshuffle = TRUE, set.seed = 149, mc.cores = 1, ...)
+mds(d, m = NULL, k = 2, type = "classic", add = FALSE, cor.method = "pearson", splitMDS = FALSE, split = 0.26, overlap = 0.025, stepSize=0.01, reshuffle = TRUE, set.seed = 149, mc.cores = 1, ...)
+getR2(m)
+getStress(m)
+getPoints(m)
 }
 \arguments{
   \item{d}{
@@ -78,6 +94,9 @@ mds(d, m = NULL, k = 2, type = "classic", add = FALSE, cor.method = "pearson", s
     two adjacent distance submatrixes. These points will be used as
     spatial references to stitch each two adjacent MDS objects by Procrustes.
   }
+  \item{stepSize}{
+    Size for the quadratic search step to be used for R-square optimization if \code{boostMDS} is called, see specific help function for details.
+  }
   \item{reshuffle}{
     Set to TRUE to perform random resampling of the input distance
     matrix before splitting it for parallel computation. This is often
@@ -105,8 +124,8 @@ mds(d, m = NULL, k = 2, type = "classic", add = FALSE, cor.method = "pearson", s
 \author{
 Oscar Reina
 }
-\references{
-See functions cmdscale, isoMDS from package \code{MASS}
+\seealso{
+See functions cmdscale, isoMDS from package \code{MASS}.
 }
 \examples{
 x <- rbind(c(rep(0,15),rep(1,5)),c(rep(0,15),rep(1,5)),c(rep(0,19),1),c(rep(1,5),rep(0,15)))
@@ -115,6 +134,7 @@ d <- distGPS(x,metric='tanimoto',uniqueRows=TRUE)
 mds1 <- mds(d)
 mds1
 plot(mds1)
+#gps2xgmml(mds1, fname='chroGPS_factors.xgmml', fontSize=4,col=col2hex('red'), cex=8)
 }
 \keyword{ graphs }
 \keyword{ mds }

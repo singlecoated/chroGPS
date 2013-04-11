@@ -7,6 +7,12 @@ setMethod("show","distGPS",function(object) {
 }
 )
 
+## as.matrix
+setMethod("as.matrix",signature(x="distGPS"),function(x) {
+  as.matrix(x@d)
+}
+)
+
 setClass("splitDistGPS", representation(d="list",size="numeric",o="numeric",shuffle="numeric"))
  
 ## SHOW
@@ -14,6 +20,12 @@ setMethod("show","splitDistGPS",function(object) {
 cat("Object of class splitDistGPS storing", length(object@d),  "distGPS objects of size", object@size, "with", object@o , "anchor points between them \n")
 }
 )
+
+setMethod("show","splitDistGPS",function(object) {
+cat("Object of class splitDistGPS storing", length(object@d),  "distGPS objects of size", object@size, "with", object@o , "anchor points between them \n")
+}
+)
+
 
 # Methods and Functions
 setGeneric("distGPS", function(x, metric='tanimoto', uniqueRows=FALSE, genomelength=NULL, mc.cores=1) standardGeneric("distGPS"))
@@ -33,22 +45,40 @@ setMethod("distGPS", signature(x='RangedDataList'), function(x, metric='tanimoto
 }
 )
 
-## Auxiliary routines
-tanipair <- function(z1,z2) { # Not exactly tanimoto, deprecated
-  n1 <- sum(sum(z1 %over% z2))
-  n2 <- sum(sum(z2 %over% z1))
-  (n1+n2)/(nrow(z1)+nrow(z2))
-}
+### ## Auxiliary routines
+### tanipair <- function(z1,z2) { # Not exactly tanimoto, deprecated
+###   n1 <- sum(sum(z1 %in% z2))
+###   n2 <- sum(sum(z2 %in% z1))
+###   (n1+n2)/(nrow(z1)+nrow(z2))
+### }
 
 realtanipair <- function(z1,z2) { # REAL tanimoto pair
+  # Replaced %in% with over on April 10th 2013
+  #n1 <- sum(sum(z1 %in% z2))
+  #n2 <- sum(sum(z2 %in% z1))
   n1 <- sum(sum(z1 %over% z2))
   n2 <- sum(sum(z2 %over% z1))
   (.5*(n1+n2))/(nrow(z1)+nrow(z2) - (.5*(n1+n2)))
 }
 
 avgdistpair <- function(z1,z2) {
+  # Replaced %in% with over on April 10th 2013
+  #n1 <- sum(sum(z1 %in% z2))
+  #n2 <- sum(sum(z2 %in% z1))
   n1 <- sum(sum(z1 %over% z2))
   n2 <- sum(sum(z2 %over% z1))
+  .5*(n1/nrow(z1) + n2/nrow(z2))
+}
+
+realtanipair.old <- function(z1,z2) { # REAL tanimoto pair
+  n1 <- sum(sum(z1 %in% z2))
+  n2 <- sum(sum(z2 %in% z1))
+  (.5*(n1+n2))/(nrow(z1)+nrow(z2) - (.5*(n1+n2)))
+}
+
+avgdistpair.old <- function(z1,z2) {
+  n1 <- sum(sum(z1 %in% z2))
+  n2 <- sum(sum(z2 %in% z1))
   .5*(n1/nrow(z1) + n2/nrow(z2))
 }
 
@@ -72,6 +102,8 @@ rdldist <- function(x,metric,genomelength=NULL,mc.cores=1) {
 # - metric: 'avgdist' or 'tanimoto'
 # - genomelength: length of the genome to be used in chisqDist. If missing length is auto calculated to fit everything.
 # - mc.cores: number of cores to use in parallel computations (passed on to mclapply)
+  # Bypass in case IRanges is older than 1.18
+  if (installed.packages()['IRanges','Version']<'1.18.0') { avgdistpair <- avgdistpair.old; realtanipair <- realtanipair.old }
   #if (metric=='avgdist') { distfun <- avgdistpair } else if (metric=='tanimoto') { distfun <- tanipair } else if (metric=='realtanimoto') { distfun <- realtanipair }
   if (metric=='avgdist') { distfun <- avgdistpair } else if (metric=='tanimoto') { distfun <- realtanipair }
   # Branch for alternative chisquare metric deprecated
@@ -98,6 +130,24 @@ rdldist <- function(x,metric,genomelength=NULL,mc.cores=1) {
   rownames(ans) <- colnames(ans) <- names(x)
   ans
 }
+
+chisqdist2 <- function(x,seqlen=NULL,mc.cores=1)
+  {
+    if (is.null(seqlen)) seqlen <- sum(apply(do.call(rbind,lapply(x,function(z) do.call(cbind,lapply(names(z),function(t) max(end(z[t])))))),2,max))
+    ans <- do.call(rbind,mclapply(x,function(y) lapply(x, function(z) {
+      mnames <- intersect(names(y),names(z)) # Matching names
+      only.y <- setdiff(names(y),names(z))
+      only.z <- setdiff(names(z),names(y))
+      d <- sum(as.data.frame(IRanges::intersect(ranges(y[mnames]),ranges(z[mnames])))$width) # Intersect, just for the common chromosomes
+      c <- sum(as.data.frame(IRanges::setdiff(ranges(y[mnames]),ranges(z[mnames])))$width) + ifelse(length(only.y)==0,0,sum(width(reduce(y[only.y])))) # A not in B + chromosomes only in A
+      b <- sum(as.data.frame(IRanges::setdiff(ranges(z[mnames]),ranges(y[mnames])))$width) + ifelse(length(only.z)==0,0,sum(width(reduce(z[only.z])))) # B not in A + chromosomes only in B
+      a <- seqlen - d - c - b # Rest of the genome
+      t <- matrix(c(a,b,c,d),nrow=2,ncol=2,byrow=TRUE)
+      return(as.numeric(chisq.test(t)$statistic))
+    }),mc.cores=mc.cores,mc.preschedule=FALSE))
+  return(ans)
+  }
+
 
 chisqdist <- function(x,mc.cores=1) { # Old chisquare calculation, deprecated
 # Compute all pairwise chi-square distances between all elements in a RangedDataList object x
@@ -231,12 +281,20 @@ setMethod("distGPS", signature(x='matrix'), function(x, metric='tanimoto', uniqu
     neach <- matrix(rep(rowSums(t(t(x)/(coln^2))),nrow(x)),nrow=nrow(x),ncol=nrow(x))
     nunion <- t(neach) + neach - nboth
     ans <- 1-nboth/nunion
+  } else if (metric=='mahalanobis') { # Mahalanobis distance
+    pairdiff <- ICSNP::pair.diff(x)
+    s=cov(x)
+    pairdiff <- pair.diff(x)
+    d <- mahalanobis(pairdiff,center=rep(0,ncol(pairdiff)),cov=s,inverted=FALSE)
+    ans <- matrix(0,nrow=nrow(x),ncol=nrow(x))
+    ans[lower.tri(ans)] <- d   #fill lower triangle
+    ans <- ans + t(ans)  #fill upper triangle as well    
   } else if (metric=='euclidean') {
     ans <- as.matrix(dist(x,method='euclidean'))
   } else if (metric=='manhattan') {
     ans <- as.matrix(dist(x,method='manhattan'))
   } else {
-    stop('Invalid metric. Available metrics are avgdist, tanimoto, wtanimoto, chi,  chisquare, euclidean and manhattan')
+    stop('Invalid metric. Available metrics are avgdist, tanimoto, wtanimoto, chi,  chisquare, mahalanobis, euclidean and manhattan')
   }
   if (uniqueRows) {
     rownames(ans) <- colnames(ans) <- xUnique$u    
@@ -263,20 +321,21 @@ uniqueCount <- function(x) {
   return(xunique)
 }
 
-collapseMarks <- function(x,FUN='OR') {
-# Internal function to perform column merging biological or technical replicates
-  # Currently accepting merging by OR (gene has mark if any of the replicates has mark), AND (gene has mark only if all replicates have mark)
-  id <- as.character(colnames(x))
-  uid <- sort(unique(id))
-  xx <- do.call(cbind,lapply(uid,function(y) {
-    sel <- which(id==y)
-    if (FUN=='OR') if (length(sel)>1) xx <- as.numeric(rowSums(x[,sel])>0) else xx <- as.numeric(x[,sel]>0)
-    else if (FUN=='AND') if (length(sel)>1) xx <- as.numeric(rowSums(x[,sel])==length(sel)) else xx <- as.numeric(x[,sel]>0)
-    xx
-  }))
-  colnames(xx) <- uid
-  xx
-}
+# Deprecated
+### collapseMarks <- function(x,FUN='OR') {
+### # Internal function to perform column merging biological or technical replicates
+###   # Currently accepting merging by OR (gene has mark if any of the replicates has mark), AND (gene has mark only if all replicates have mark)
+###   id <- as.character(colnames(x))
+###   uid <- sort(unique(id))
+###   xx <- do.call(cbind,lapply(uid,function(y) {
+###     sel <- which(id==y)
+###     if (FUN=='OR') if (length(sel)>1) xx <- as.numeric(rowSums(x[,sel])>0) else xx <- as.numeric(x[,sel]>0)
+###     else if (FUN=='AND') if (length(sel)>1) xx <- as.numeric(rowSums(x[,sel])==length(sel)) else xx <- as.numeric(x[,sel]>0)
+###     xx
+###   }))
+###   colnames(xx) <- uid
+###   xx
+### }
 
 # Functions to paralelize distance calculation, remember that splitDistGPS should be an internal object and not visible to the final user...
 setGeneric("splitDistGPS", function(x, metric='tanimoto', split=.5, overlap=0.05, reshuffle=TRUE,set.seed=149,mc.cores=1) { standardGeneric("splitDistGPS") } )
@@ -310,6 +369,7 @@ setMethod("splitDistGPS", signature(x='matrix'), function(x, metric, split=.5, o
 setMethod("splitDistGPS", signature(x='distGPS'), function(x, split=.5, overlap=0.05, reshuffle=TRUE,set.seed=149,mc.cores=1) {
   # Splits an already existing distGPS object into N distGPS objects across the main distance matrix diagonal
   x <- x@d
+  metric <- d@metric
   split <- floor(nrow(x) * split)
   overlap <- floor(nrow(x) * overlap)
   if (reshuffle) {
@@ -324,9 +384,9 @@ setMethod("splitDistGPS", signature(x='distGPS'), function(x, split=.5, overlap=
     p[[length(p)]] <- (max(p[[length(p)-1]])+1-overlap):nrow(x)
     if (mc.cores>1) {
       if ('multicore' %in% loadedNamespaces())
-        d <- multicore::mclapply(p,function(y) new("distGPS",d=x[y,y],type='genes'),mc.cores=mc.cores,mc.preschedule=FALSE)
+        d <- multicore::mclapply(p,function(y) new("distGPS",d=x[y,y],metric=metric,type='genes'),mc.cores=mc.cores,mc.preschedule=FALSE)
       else stop('multicore library has not been loaded!')
-    } else d <- lapply(p,function(y) distGPS(x[y,],metric=metric))
+    } else d <- lapply(p,function(y) new("distGPS",d=x[y,y],metric=metric,type='genes'))
     new("splitDistGPS",d=d,size=split,o=overlap,shuffle=sel)
   })
 

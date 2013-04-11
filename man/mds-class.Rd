@@ -15,9 +15,15 @@ Objects can be created by calls of the form \code{new("mds", ...)}.}
   \describe{
     \item{\code{points}:}{Object of class \code{"matrix"} with
       coordinates in the approximated space. }
+    \item{\code{Type}:}{Object of class \code{"character"} with the
+      type of MDS (classicMDS, isoMDS). }
+    \item{\code{Adj}:}{Object of class \code{"logical"} indicating if
+      the MDS object has been adjusted by Procrustes or not. }
     \item{\code{R.square}:}{Object of class \code{"numeric"} with the
       percentage of variability from the original dissimilarities
       captured in the approximated distances. }
+    \item{\code{stress}:}{Object of class \code{"numeric"} with the
+      stress for the returned MDS configuration. }
   }
 }
 \details{
@@ -82,6 +88,15 @@ Objects can be created by calls of the form \code{new("mds", ...)}.}
   }
   \item{\code{palette}:}{
     Color palette to be used for scale colors.
+  }
+  \item{\code{xlim}:}{
+    Graphical limit for the X axis.
+  }
+  \item{\code{ylim}:}{
+    Graphical limit for the Y axis.
+  }
+  \item{\code{zlim}:}{
+    Graphical limit for the Z axis for 3D plots.
   }}
 }
 \author{
