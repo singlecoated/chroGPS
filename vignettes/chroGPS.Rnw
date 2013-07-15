@@ -43,8 +43,8 @@ for a detailed technical description the reader is referred to the supplementary
 \\\\
 Many routines allow performing computations in parallel 
 by specifying an argument \texttt{mc.cores}, which uses
-packages \texttt{multicore} \newtext{and \texttt{parallel}.
-These packages are not available under Windows, so here we call the functions with a single processor (the default option).}
+package \newtext{\texttt{parallel}.
+}
 \\\\
 We start by loading the package and a ChIP-chip dataset with genomic
 distribution of 20 epigenetic elements from the Drosophila melanogaster

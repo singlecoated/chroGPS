@@ -104,8 +104,8 @@ boostMDS <- function(D, Y, rate=.01, maxit=50, tol=0.001, samplesize, verbose=TR
     rateseq <- seq(.1*rate,2*rate,length=5)
     #cat("\nResampling is",(samplesize<1))
     if (mc.cores>1) {
-      if ('multicore' %in% loadedNamespaces()) r2new <- unlist(multicore::mclapply(rateseq,targetf,resample=(samplesize<1),mc.cores=mc.cores,mc.preschedule=FALSE))
-      else stop('multicore library has not been loaded!')
+      if ('parallel' %in% loadedNamespaces()) r2new <- unlist(parallel::mclapply(rateseq,targetf,resample=(samplesize<1),mc.cores=mc.cores,mc.preschedule=FALSE))
+      else stop('parallel library has not been loaded!')
     } else r2new <- unlist(lapply(rateseq,targetf,resample=(samplesize<1)))
     #Consider quadratic step size
     fit <- lm(r2new ~ rateseq + I(rateseq^2))
@@ -223,8 +223,8 @@ setMethod("mds", signature=c(d="splitDistGPS",m="missing"), function(d,k=2,type=
 splitMDS <- function(d,k=2,type='classic',plt=FALSE,mc.cores=1)
 {
   if (mc.cores>1) {
-    if ('multicore' %in% loadedNamespaces()) m <- multicore::mclapply(d@d,mds,k=k,type=type,splitMDS=FALSE,mc.cores=mc.cores,mc.preschedule=FALSE)
-    else stop('multicore library has not been loaded!')
+    if ('parallel' %in% loadedNamespaces()) m <- parallel::mclapply(d@d,mds,k=k,type=type,splitMDS=FALSE,mc.cores=mc.cores,mc.preschedule=FALSE)
+    else stop('parallel library has not been loaded!')
   } else m <- lapply(d@d,mds,k=k,type=type,splitMDS=FALSE)
   # Ahora hay que juntar, es mejor hacerlo secuencialmente o por parejas y luego eliminar los puntos comunes ?
   # Version secuencial, funciona bien

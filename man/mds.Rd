@@ -111,7 +111,7 @@ getPoints(m)
 }
 \item{mc.cores}{
   Number of cores to be passed to the \code{mclapply} function from
-  the \code{multicore} package, used to perform the parallel MDS computations.
+  the \code{parallel} package, used to perform the parallel MDS computations.
 }
 \item{\dots}{
   Additional parameters passed to \code{cmdscale}, \code{isoMDS} or

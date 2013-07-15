@@ -32,8 +32,8 @@ pden.adjust <- function(clus,mc.cores=1)
     if (!is(clus,"clusGPS")) stop('Object must be of "clusGPS" class')
     if (clus@adjusted) stop('Posterior density for clustering is already adjusted')
     if (mc.cores>1) {
-      if ('multicore' %in% loadedNamespaces()) {
-        clus@clus <- multicore::mclapply(clus@clus,function(x) { # For each k
+      if ('parallel' %in% loadedNamespaces()) {
+        clus@clus <- parallel::mclapply(clus@clus,function(x) { # For each k
           id <- x$id
           priorprob <- as.numeric(prop.table(table(x$id)))
           pointprob <- x$pointprob[,-1:-2] # Get just prob values, leave coordinates aside
@@ -41,11 +41,11 @@ pden.adjust <- function(clus,mc.cores=1)
           pointprob <- pointprob/rowSums(pointprob) # A = A / rowSums(A)
           pointprob <- cbind(x$pointprob[,1:2],pointprob) # Put coordinates back
           # PP of accurate class. for each element/cluster in partition for k=x
-          propclass <- multicore::mclapply(1:(ncol(pointprob)-2),function(y) { pointprob[id==y,paste('C',y,sep='')] / rowSums(pointprob[id==y,-1:-2]) },mc.cores=mc.cores,mc.preschedule=FALSE)
+          propclass <- parallel::mclapply(1:(ncol(pointprob)-2),function(y) { pointprob[id==y,paste('C',y,sep='')] / rowSums(pointprob[id==y,-1:-2]) },mc.cores=mc.cores,mc.preschedule=FALSE)
           return(list(id=x$id,pden=x$pden,propclass=propclass,pointprob=pointprob)) # return clus list
         },mc.cores=mc.cores,mc.preschedule=FALSE)
       }
-      else stop('multicore library has not been loaded!')
+      else stop('parallel library has not been loaded!')
     } else {
       clus@clus <- lapply(clus@clus,function(x) { # For each k
         id <- x$id
@@ -90,8 +90,8 @@ preCalcGrid <- function(m,densgrid,ngrid)
 ### setGeneric("premergeClusters", function(clus,m,n,method='manual',plot=FALSE,mc.cores=mc.cores,...) standardGeneric("premergeClustersGPS"))
 ###  
 ### setMethod("premergeClusters", signature=c(clus='clusGPS',m='mds'), function(clus,m,n,method='manual',plot=FALSE,mc.cores=mc.cores,...) {
-###   if ('multicore' %in% loadedNamespaces() & mc.cores>1)
-###     clus@clus <- multicore::mclapply(clus@clus,premergeClusters,m=m,n=n,method=method,plot=plot,mc.cores=mc.cores)
+###   if ('parallel' %in% loadedNamespaces() & mc.cores>1)
+###     clus@clus <- parallel::mclapply(clus@clus,premergeClusters,m=m,n=n,method=method,plot=plot,mc.cores=mc.cores)
 ###   else clus@clus <- lapply(clus@clus,premergeClusters,m=m,n=n,method=method,plot=plot)
 ###  
 ### })
@@ -192,8 +192,8 @@ setMethod("clusGPS", signature=c(d='distGPS',m='mds'),
       else if (length(k)==1 & length(minpoints)>1) idx <- as.numeric(names(table(id))[table(id)>=x]) # We iterate over minpoints
       else idx <- as.numeric(names(table(id)[table(id)>=minpoints])) # By default we iterate over k
       if (mc.cores>1) {
-        if ('multicore' %in% loadedNamespaces()) {
-          pden <- multicore::mclapply(idx,function(y) {
+        if ('parallel' %in% loadedNamespaces()) {
+          pden <- parallel::mclapply(idx,function(y) {
             mpoints <- m@points[as.numeric(id)==y,]
             if (verbose)
               if (length(k)>1) cat("Calculating posterior density of mis-classification for cluster:",y)
@@ -202,7 +202,7 @@ setMethod("clusGPS", signature=c(d='distGPS',m='mds'),
             contour2dDP(mpoints,grid=grid,xlim=range(mpoints),ylim=range(mpoints),contour.type='none',...)
           },mc.cores=mc.cores,mc.preschedule=FALSE)
         }
-        else stop('multicore library has not been loaded!')
+        else stop('parallel library has not been loaded!')
       } else {
         pden <- lapply(idx,function(y) {
           mpoints <- m@points[as.numeric(id)==y,]
@@ -395,8 +395,8 @@ setMethod("mergeClusters", signature=c(clus="list"), function (clus, clus.method
   maxOverlap <- vector("numeric", 0)
   clusovs <- vector("list", 0)
   while (ncol(cluspoints) > 3) {
-    if ("multicore" %in% loadedNamespaces()) 
-      clusov <- do.call(cbind, multicore::mclapply(colnames(cluspoints[,-1:-2]), function(x) unlist(lapply(colnames(cluspoints[,-1:-2]), function(y) clusOverlap(cluspoints, clusgenes, x, y, method = clus.method))), mc.cores = mc.cores, mc.preschedule=FALSE))
+    if ("parallel" %in% loadedNamespaces()) 
+      clusov <- do.call(cbind, parallel::mclapply(colnames(cluspoints[,-1:-2]), function(x) unlist(lapply(colnames(cluspoints[,-1:-2]), function(y) clusOverlap(cluspoints, clusgenes, x, y, method = clus.method))), mc.cores = mc.cores, mc.preschedule=FALSE))
     else clusov <- do.call(cbind, lapply(colnames(cluspoints[,-1:-2]), function(x) unlist(lapply(colnames(cluspoints[,-1:-2]), function(y) clusOverlap(cluspoints, clusgenes, x, y, method = clus.method)))))
     if ((nrow(clusov) == ncol(clusov)) & nrow(clusov) >= 2) diag(clusov) <- -1
     maxOverlap <- c(maxOverlap, max(clusov))

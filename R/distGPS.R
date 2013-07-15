@@ -117,9 +117,9 @@ rdldist <- function(x,metric,genomelength=NULL,mc.cores=1) {
   index <- index[index[,1]<index[,2],]
   index <- as.list(data.frame(t(index)))
   if (mc.cores>1) {
-    if ('multicore' %in% loadedNamespaces()) {
-      d <- multicore::mclapply(index,function(z) distfun(x[[z[1]]], x[[z[2]]]), mc.cores=mc.cores, mc.preschedule=TRUE)
-    } else stop('multicore library has not been loaded!')
+    if ('parallel' %in% loadedNamespaces()) {
+      d <- parallel::mclapply(index,function(z) distfun(x[[z[1]]], x[[z[2]]]), mc.cores=mc.cores, mc.preschedule=TRUE)
+    } else stop('parallel library has not been loaded!')
   } else {
     d <- lapply(index,function(z) distfun(x[[z[1]]], x[[z[2]]]))  
   }
@@ -158,17 +158,17 @@ chisqdist <- function(x,mc.cores=1) { # Old chisquare calculation, deprecated
   warn <- options("warn")$warn
   options(warn= -1)
   if (mc.cores>1) {
-    if ('multicore' %in% loadedNamespaces()) { l <- do.call(cbind,multicore::mclapply(x,function(z) sapply(z,function(z) ifelse(is.null(z),0,max(end(z)))),mc.cores=mc.cores,mc.preschedule=FALSE)) }}
+    if ('parallel' %in% loadedNamespaces()) { l <- do.call(cbind,parallel::mclapply(x,function(z) sapply(z,function(z) ifelse(is.null(z),0,max(end(z)))),mc.cores=mc.cores,mc.preschedule=FALSE)) }}
   else l <- do.call(cbind,lapply(x,function(z) sapply(z,function(z) ifelse(is.null(z),0,max(end(z))))))
   l[l<=0] <- 0
   lmax <- apply(l,1,max)
   #options(warn=warn)
   #Coverage in each sample
   if (mc.cores>1) {
-    if ('multicore' %in% loadedNamespaces()) {
-      # covsingle <- multicore::mclapply(x,coverage,width=as.list(lmax), mc.cores=mc.cores, mc.preschedule=FALSE)
-      covsingle <- multicore::mclapply(x,function(z) coverage(z,width=as.list(lmax[names(lmax) %in% names(z)])), mc.cores=mc.cores, mc.preschedule=FALSE)
-    } else stop('multicore library has not been loaded!')
+    if ('parallel' %in% loadedNamespaces()) {
+      # covsingle <- parallel::mclapply(x,coverage,width=as.list(lmax), mc.cores=mc.cores, mc.preschedule=FALSE)
+      covsingle <- parallel::mclapply(x,function(z) coverage(z,width=as.list(lmax[names(lmax) %in% names(z)])), mc.cores=mc.cores, mc.preschedule=FALSE)
+    } else stop('parallel library has not been loaded!')
   } else {
     #covsingle <- lapply(x,coverage,width=as.list(lmax))
     covsingle <- lapply(x,function(z) coverage(z,width=as.list(lmax[names(lmax) %in% names(z)])))
@@ -359,9 +359,9 @@ setMethod("splitDistGPS", signature(x='matrix'), function(x, metric, split=.5, o
   for (i in 2:(length(p)-1)) p[[i]] <- p[[i-1]]+width
   p[[length(p)]] <- (max(p[[length(p)-1]])+1-overlap):nrow(x)
   if (mc.cores>1) {
-    if ('multicore' %in% loadedNamespaces())
-      d <- multicore::mclapply(p,function(y) distGPS(x[y,],metric=metric),mc.cores=mc.cores,mc.preschedule=FALSE)
-    else stop('multicore library has not been loaded!')
+    if ('parallel' %in% loadedNamespaces())
+      d <- parallel::mclapply(p,function(y) distGPS(x[y,],metric=metric),mc.cores=mc.cores,mc.preschedule=FALSE)
+    else stop('parallel library has not been loaded!')
   } else d <- lapply(p,function(y) distGPS(x[y,],metric=metric))
   new("splitDistGPS",d=d,size=split,o=overlap,shuffle=sel)
 })
@@ -383,9 +383,9 @@ setMethod("splitDistGPS", signature(x='distGPS'), function(x, split=.5, overlap=
     for (i in 2:(length(p)-1)) p[[i]] <- p[[i-1]]+width
     p[[length(p)]] <- (max(p[[length(p)-1]])+1-overlap):nrow(x)
     if (mc.cores>1) {
-      if ('multicore' %in% loadedNamespaces())
-        d <- multicore::mclapply(p,function(y) new("distGPS",d=x[y,y],metric=metric,type='genes'),mc.cores=mc.cores,mc.preschedule=FALSE)
-      else stop('multicore library has not been loaded!')
+      if ('parallel' %in% loadedNamespaces())
+        d <- parallel::mclapply(p,function(y) new("distGPS",d=x[y,y],metric=metric,type='genes'),mc.cores=mc.cores,mc.preschedule=FALSE)
+      else stop('parallel library has not been loaded!')
     } else d <- lapply(p,function(y) new("distGPS",d=x[y,y],metric=metric,type='genes'))
     new("splitDistGPS",d=d,size=split,o=overlap,shuffle=sel)
   })

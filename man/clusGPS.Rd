@@ -134,7 +134,7 @@ clusterID(clus,name)
   }
   \item{mc.cores}{
     Number of cores to be used for parallel computation with the
-    \code{multicore} package.
+    \code{parallel} package.
   }
   \item{set.seed}{
     If samplesize<1, random seed to be used to perform random sampling

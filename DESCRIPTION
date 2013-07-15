@@ -1,7 +1,7 @@
 Package: chroGPS
 Type: Package
 Title: chroGPS: visualizing the epigenome
-Version: 1.5.0
+Version: 1.5.1
 Date: 2013-04-01
 Author: Oscar Reina, David Rossell
 Maintainer: Oscar Reina <oscar.reina@irbbarcelona.org>
@@ -9,7 +9,7 @@ Description: We provide intuitive maps to visualize the association between gene
 License: GPL (>=2)
 Depends: R (>= 2.13.0), IRanges, methods, Biobase, MASS, graphics, stats, rgl, changepoint
 Imports: graphics, cluster, DPpackage, ICSNP
-Enhances: multicore, XML
+Enhances: parallel, XML
 Collate: adjustPeaks.R distGPS.R domainDist.R mds-class.R mds.R procrustesAdj.R clusGPS.R geneSetGPS.R getmodEncode.R gff2RDList.R gps2xgmml.R
 LazyLoad: yes
 biocViews: Visualization, Clustering

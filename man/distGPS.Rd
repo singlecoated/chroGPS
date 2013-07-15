@@ -64,7 +64,7 @@ distGPS(x, metric='tanimoto', uniqueRows=FALSE, genomelength=NULL, mc.cores=1)
   \item{genomelength}{For 'chi' and 'chisquare' metrics, numeric value
     indicating the length of the genome. If not given the function
     uses the minimum length necessary to fit the total length of the result.}
-  \item{mc.cores}{If \code{mc.cores}>1 and \code{multicore} package is
+  \item{mc.cores}{If \code{mc.cores}>1 and \code{parallel} package is
     loaded, computations are performed in parallel with \code{mc.cores}
     processors when possible.}
 }
