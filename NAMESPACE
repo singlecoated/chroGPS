@@ -4,6 +4,6 @@ importFrom(graphics, plot)
 #importFrom(changepoint, cpt.mean, cpt.var)
 #importFrom(gplots, col2hex, heatmap.2)
 
-exportMethods(distGPS,procrustesAdj,adjustPeaks,mds,clusGPS,mergeClusters,geneSetGPS,plot,gps2xgmml,clusNames,tabClusters,clusterID,getR2,getStress,getPoints,is.adj)
+exportMethods(distGPS,procrustesAdj,adjustPeaks,mds,clusGPS,mergeClusters,geneSetGPS,plot,gps2xgmml,clusNames,tabClusters,clusterID,getR2,getStress,getPoints,is.adj,as.matrix)
 export(adjustPeaks,distGPS,procrustesAdj,clusGPS,mergeClusters,profileClusters,mds,geneSetGPS,domainDist,addVar,uniqueCount,contour2dDP,plotContour,getURL,gff2RDList,boostMDS)
 exportClasses("mds","distGPS","clusGPS","hclust")
