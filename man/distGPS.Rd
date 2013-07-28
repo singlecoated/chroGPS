@@ -4,6 +4,7 @@
 \alias{distGPS,RangedDataList-method}
 \alias{distGPS,data.frame-method}
 \alias{distGPS,matrix-method}
+\alias{as.matrix,distGPS-method}
 \alias{splitDistGPS,data.frame-method}
 \alias{splitDistGPS,matrix-method}
 \alias{uniqueCount}
