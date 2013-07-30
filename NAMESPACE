@@ -1,4 +1,4 @@
-import(IRanges,DPpackage,ICSNP,changepoint,gplots)
+import(IRanges,DPpackage,ICSNP,changepoint)
 importFrom(cluster, agnes)
 importFrom(graphics, plot)
 #importFrom(changepoint, cpt.mean, cpt.var)

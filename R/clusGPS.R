@@ -104,7 +104,7 @@ premergeClusters <- function(m,id,n,method='manual',recalcDist=TRUE,retCentroids
   {
     cat(sprintf('\nPre-merging non-clustered points in nodules of size %d...\n',n))
     if (method=='manual') {
-        sqdist <- function(x,y) apply(y,1,function(r) sqrt((x[1]-r[1])^2 + (x[2]-r[2])^2))
+      sqdist <- function(x,y) apply(y,1,function(r) sqrt((x[1]-r[1])^2 + (x[2]-r[2])^2))
         #centroids <- do.call(rbind,by(m@points,id,mean)) # Compute mean of coordinates for every cluster
         centroids <- do.call(rbind,by(m@points,id,colMeans)) # Compute mean of coordinates for every cluster
         dist.centroids <- as.matrix(dist(centroids,method='euclidean')) # First call
@@ -132,13 +132,15 @@ premergeClusters <- function(m,id,n,method='manual',recalcDist=TRUE,retCentroids
             #centroids <- do.call(rbind,by(m@points,id,mean)) # Compute mean of coordinates for every cluster
             centroids <- centroids[rownames(centroids) %in% as.character(id),] # Remove centroids from old cluster
             if (!recalcDist) { dist.centroids <- dist.centroids[rownames(centroids),rownames(centroids)] # Remove distance row and column for old cluster
-              dist.centroids[newclus,] <- dist.centroids[,newclus] <- sqdist(centroids[newclus,],centroids) }
+              dist.centroids[newclus,] <- dist.centroids[,newclus] <- sqdist(centroids[newclus,],centroids)
+              diag(dist.centroids) <- Inf }
             else { dist.centroids <- as.matrix(dist(centroids,method='euclidean')) # First call
-                   diag(dist.centroids) <- Inf }
+                   diag(dist.centroids) <- Inf }         
             if (verbose) cat(sprintf('\nConfiguration %d: Assigned cluster %s to %s',conf,oldclus,newclus))
             conf <- conf+1
-          }   
-        ifelse(retCentroids,return(list(centroids=centroids,id=id)),return(id))
+          }
+        #ifelse(retCentroids,return(list(centroids=centroids,id=id)),return(id))
+      if (retCentroids==TRUE) return(list(centroids=centroids,id=id)) else return(id)
       }
     else if (method=='auto') {
       cat('\nNot yet implemented...')
