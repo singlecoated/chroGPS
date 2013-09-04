@@ -230,6 +230,7 @@ setMethod("distGPS", signature(x='matrix'), function(x, metric='tanimoto', weigh
     }
     nunion <- t(neach) + neach - nboth
     ans <- 1-nboth/nunion
+    ans[nunion==0] <- 0 #Correct 0/0 when both rows have all 0's
     diag(ans) <- rep(0,ncol(ans))
 #  } else if (metric=='avgdist.old') { # This metric didnt return a real symmetric matrix, deprecated and fixed in avgdist below
 #    nboth <- x %*% t(x)
@@ -249,6 +250,7 @@ setMethod("distGPS", signature(x='matrix'), function(x, metric='tanimoto', weigh
     ans <- diag(0,nrow(x))
     ans[upper.tri(ans)] <- 1-pincluded
     ans[lower.tri(ans)] <- t(ans)[lower.tri(ans)] # symmetric
+    ans[is.nan(ans)] <- 0 #Correct 0/0 when two rows have all 0's
     # Correct problem with some distances between different points which should not be zero for isoMDS
     ans[ans==0] <- 0.000001
     diag(ans) <- 0
@@ -271,6 +273,7 @@ setMethod("distGPS", signature(x='matrix'), function(x, metric='tanimoto', weigh
     neach <- matrix(rep(rowSums(t(t(x)/(coln))),nrow(x)),nrow=nrow(x),ncol=nrow(x))
     nunion <- t(neach) + neach - nboth
     ans <- 1-nboth/nunion
+    ans[nunion==0] <- 0 #Correct 0/0 when both rows have all 0's
   } else if (metric=='t.dsqrt') { # Tanimoto double weighted, deprecated
     if (missing(weights)) {
       coln <- sqrt(colSums(x)) # Wi = 1/sqrt(ngenes with mark i)
@@ -285,6 +288,7 @@ setMethod("distGPS", signature(x='matrix'), function(x, metric='tanimoto', weigh
     neach <- 1*matrix(rep(rowSums(t(t(x)/(coln))),nrow(x)),nrow=nrow(x),ncol=nrow(x))
     nunion <- t(neach) + neach - nboth
     ans <- 1-nboth/nunion
+    ans[nunion==0] <- 0 #Correct 0/0 when both rows have all 0's
     diag(ans) <- 0
   } else if (metric=='t.lin') { # Tanimoto linear, deprecated
     if (missing(weights)) {
@@ -297,6 +301,7 @@ setMethod("distGPS", signature(x='matrix'), function(x, metric='tanimoto', weigh
     neach <- matrix(rep(rowSums(t(t(x)/(coln^2))),nrow(x)),nrow=nrow(x),ncol=nrow(x))
     nunion <- t(neach) + neach - nboth
     ans <- 1-nboth/nunion
+    ans[nunion==0] <- 0 #Correct 0/0 when both rows have all 0's
   } else if (metric=='t.perc') { # Wi = 1/%genes with mark i # Tanimoto percentile, deprecated
     coln <- sqrt(100*colSums(x)/max(colSums(x)))
     x2 <- t(t(x)/coln)
@@ -304,6 +309,7 @@ setMethod("distGPS", signature(x='matrix'), function(x, metric='tanimoto', weigh
     neach <- matrix(rep(rowSums(t(t(x)/(coln^2))),nrow(x)),nrow=nrow(x),ncol=nrow(x))
     nunion <- t(neach) + neach - nboth
     ans <- 1-nboth/nunion
+    ans[nunion==0] <- 0 #Correct 0/0 when both rows have all 0's
   } else if (metric=='mahalanobis') { # Mahalanobis distance
     pairdiff <- ICSNP::pair.diff(x)
     s=cov(x)
