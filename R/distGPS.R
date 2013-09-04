@@ -28,9 +28,9 @@ cat("Object of class splitDistGPS storing", length(object@d),  "distGPS objects 
 
 
 # Methods and Functions
-setGeneric("distGPS", function(x, metric='tanimoto', uniqueRows=FALSE, genomelength=NULL, mc.cores=1) standardGeneric("distGPS"))
+setGeneric("distGPS", function(x, metric='tanimoto', weights, uniqueRows=FALSE, genomelength=NULL, mc.cores=1) standardGeneric("distGPS"))
 
-setMethod("distGPS", signature(x='RangedDataList'), function(x, metric='tanimoto', uniqueRows=FALSE, genomelength=NULL, mc.cores=1) {
+setMethod("distGPS", signature(x='RangedDataList'), function(x, metric='tanimoto', weights, uniqueRows=FALSE, genomelength=NULL, mc.cores=1) {
   # if (metric %in% c('tanimoto','avgdist','realtanimoto')) {
   if (metric %in% c('tanimoto','avgdist')) {
      ans <- rdldist(x=x,metric=metric,mc.cores=mc.cores)
@@ -205,12 +205,12 @@ chisqdist <- function(x,mc.cores=1) { # Old chisquare calculation, deprecated
   ans
 }
 
-setMethod("distGPS", signature(x='data.frame'), function(x, metric='tanimoto', uniqueRows=FALSE, genomelength=NULL, mc.cores=1) {
-  distGPS(x=as.matrix(x,rownames.force=TRUE), metric=metric, uniqueRows=uniqueRows, mc.cores=mc.cores)
+setMethod("distGPS", signature(x='data.frame'), function(x, metric='tanimoto', weights, uniqueRows=FALSE, genomelength=NULL, mc.cores=1) {
+  distGPS(x=as.matrix(x,rownames.force=TRUE), metric=metric, weights=weights, uniqueRows=uniqueRows, mc.cores=mc.cores)
 }
 )
 
-setMethod("distGPS", signature(x='matrix'), function(x, metric='tanimoto', uniqueRows=FALSE, genomelength=NULL, mc.cores=1) {
+setMethod("distGPS", signature(x='matrix'), function(x, metric='tanimoto', weights, uniqueRows=FALSE, genomelength=NULL, mc.cores=1) {
   #Check matrix only has 0's and 1's
   if (any(!(x %in% c(0,1)))) stop('x can only contain 0/1 or FALSE/TRUE')
   #Reduce matrix to unique rows
@@ -220,20 +220,30 @@ setMethod("distGPS", signature(x='matrix'), function(x, metric='tanimoto', uniqu
   }
   #Compute distances
   if (metric=='tanimoto') {
-    #ans <- daisy(x,metric='gower',type=list(asymm=1:ncol(x))) #Gower's index (=Jaccard for binary vars)
-    #ans <- as.matrix(ans)
-    nboth <- x %*% t(x)
-    neach <- matrix(rep(rowSums(x),nrow(x)),nrow=nrow(x),ncol=nrow(x))
+    if (missing(weights)) {
+      nboth <- x %*% t(x)
+      neach <- matrix(rep(rowSums(x),nrow(x)),nrow=nrow(x),ncol=nrow(x))
+    } else {
+      x2 <- t(t(x)*sqrt(weights)) # Since they are multiplied by each other, we get 1/weights
+      nboth <- x2 %*% t(x2)
+      neach <- matrix(rep(rowSums(t(t(x)*weights)),nrow(x)),nrow=nrow(x),ncol=nrow(x))
+    }
     nunion <- t(neach) + neach - nboth
     ans <- 1-nboth/nunion
-  } else if (metric=='avgdist.old') { # This metric didnt return a real symmetric matrix, deprecated and fixed in avgdist below
-    nboth <- x %*% t(x)
-    pincluded <- nboth/matrix(diag(nboth),nrow=nrow(nboth),ncol=ncol(nboth)) #percentage of inclusion (asymmetric)
-    pincluded <- .5*(pincluded[upper.tri(pincluded)]+pincluded[lower.tri(pincluded)])
-    ans <- diag(0,nrow(x))
-    ans[upper.tri(ans)] <- ans[lower.tri(ans)] <- 1-pincluded # not symmetric
+    diag(ans) <- rep(0,ncol(ans))
+#  } else if (metric=='avgdist.old') { # This metric didnt return a real symmetric matrix, deprecated and fixed in avgdist below
+#    nboth <- x %*% t(x)
+#    pincluded <- nboth/matrix(diag(nboth),nrow=nrow(nboth),ncol=ncol(nboth)) #percentage of inclusion (asymmetric)
+#    pincluded <- .5*(pincluded[upper.tri(pincluded)]+pincluded[lower.tri(pincluded)])
+#    ans <- diag(0,nrow(x))
+#    ans[upper.tri(ans)] <- ans[lower.tri(ans)] <- 1-pincluded # not symmetric
   } else if (metric=='avgdist') {
-    nboth <- x %*% t(x)
+    if (missing(weights)) {
+      nboth <- x %*% t(x)
+    } else {
+      x2 <- t(t(x)*sqrt(weights))
+      nboth <- x2 %*% t(x2)      
+    }
     pincluded <- nboth/matrix(diag(nboth),nrow=nrow(nboth),ncol=ncol(nboth)) #percentage of inclusion (asymmetric)
     pincluded <- .5*(pincluded[upper.tri(pincluded)]+pincluded[lower.tri(pincluded)])
     ans <- diag(0,nrow(x))
@@ -243,6 +253,7 @@ setMethod("distGPS", signature(x='matrix'), function(x, metric='tanimoto', uniqu
     ans[ans==0] <- 0.000001
     diag(ans) <- 0
   } else if (metric %in% c('chisquare','chi')) {
+    if (!missing(weights)) warning("Cannot use user-specified weights for chi-square based distances. Ignored the weights")
     coln <- colSums(x)
     x <- x[,coln!=0]; coln <- coln[coln!=0]
     x <- x/rowSums(x)  #turn counts to proportions
@@ -250,14 +261,22 @@ setMethod("distGPS", signature(x='matrix'), function(x, metric='tanimoto', uniqu
     ans <- as.matrix(dist(x,method='euclid'))
     if (metric=='chi') ans <- sqrt(ans)
   } else if (metric=='wtanimoto') { # old t.sqrt
-    coln <- sqrt(colSums(x)) # Wi = 1/sqrt(ngenes with mark i)
+    if (missing(weights)) {
+      coln <- sqrt(colSums(x)) # Wi = 1/sqrt(ngenes with mark i)
+    } else {
+      coln <- sqrt(colSums(x)/weights)
+    }
     x2 <- t(t(x)/sqrt(coln)) # Since they are multiplicated by each other, sqrt((sqrt(x))^2 becomes sqrt(x)
     nboth <- x2 %*% t(x2)
     neach <- matrix(rep(rowSums(t(t(x)/(coln))),nrow(x)),nrow=nrow(x),ncol=nrow(x))
     nunion <- t(neach) + neach - nboth
     ans <- 1-nboth/nunion
   } else if (metric=='t.dsqrt') { # Tanimoto double weighted, deprecated
-    coln <- sqrt(colSums(x)) # Wi = 1/sqrt(ngenes with mark i)
+    if (missing(weights)) {
+      coln <- sqrt(colSums(x)) # Wi = 1/sqrt(ngenes with mark i)
+    } else {
+      coln <- sqrt(colSums(x)/weights)
+    }
     x2.1 <- t(t(x)/sqrt(coln)) # Since they are multiplicated by each other, sqrt((sqrt(x))^2 becomes sqrt(x)
     nboth.1 <- x2.1 %*% t(x2.1)
     x2.2 <- t(t(1-x)/sqrt(nrow(x)-coln))
@@ -268,7 +287,11 @@ setMethod("distGPS", signature(x='matrix'), function(x, metric='tanimoto', uniqu
     ans <- 1-nboth/nunion
     diag(ans) <- 0
   } else if (metric=='t.lin') { # Tanimoto linear, deprecated
-    coln <- sqrt(colSums(x)) # Wi = 1/ngenes with mark i
+    if (missing(weights)) {
+      coln <- sqrt(colSums(x)) # Wi = 1/sqrt(ngenes with mark i)
+    } else {
+      coln <- sqrt(colSums(x)/weights)
+    }
     x2 <- t(t(x)/coln)
     nboth <- x2 %*% t(x2)
     neach <- matrix(rep(rowSums(t(t(x)/(coln^2))),nrow(x)),nrow=nrow(x),ncol=nrow(x))
@@ -290,8 +313,10 @@ setMethod("distGPS", signature(x='matrix'), function(x, metric='tanimoto', uniqu
     ans[lower.tri(ans)] <- d   #fill lower triangle
     ans <- ans + t(ans)  #fill upper triangle as well    
   } else if (metric=='euclidean') {
+    if (!missing(weights)) warning("Cannot use user-specified weights for euclidean distance. Ignored the weights")
     ans <- as.matrix(dist(x,method='euclidean'))
   } else if (metric=='manhattan') {
+    if (!missing(weights)) warning("Cannot use user-specified weights for manhattan distance. Ignored the weights")
     ans <- as.matrix(dist(x,method='manhattan'))
   } else {
     stop('Invalid metric. Available metrics are avgdist, tanimoto, wtanimoto, chi,  chisquare, mahalanobis, euclidean and manhattan')
