@@ -46,7 +46,7 @@ and a frequency count is also returned.
 
 }}
 \usage{
-distGPS(x, metric='tanimoto', uniqueRows=FALSE, genomelength=NULL, mc.cores=1)
+distGPS(x, metric='tanimoto', weights, uniqueRows=FALSE, genomelength=NULL, mc.cores=1)
 }
 \arguments{
   \item{x}{Object for which we want to compute distances}
@@ -55,6 +55,15 @@ distGPS(x, metric='tanimoto', uniqueRows=FALSE, genomelength=NULL, mc.cores=1)
     'avgdist', 'chisquare' and 'chi' (see details). For chroGPS-genes
     maps, metrics 'wtanimoto', 'euclidean' and 'manhattan' are also
     available. }
+  \item{weights}{
+    For signature(x='matrix'), an unnamed numeric vector with weights applied to every sample (column)
+    in the original data. The typical example is when we have a sample
+    (epigenetic factor) with several replicates available (biological or
+    technical replicate, different antibody, etc.), and we want to treat
+    them together (for instance giving a 1/nreplicates weight to each
+    one). If not supplied, each replicate is considered as an individual sample (using 1 as weight
+    for every sample).
+  }
   \item{uniqueRows}{If set to \code{TRUE} and \code{x} is a
     \code{matrix} or \code{data.frame}, duplicated rows are removed
     prior to distance calculation. This can save substantial computing
