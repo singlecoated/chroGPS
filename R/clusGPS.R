@@ -99,7 +99,55 @@ preCalcGrid <- function(m,densgrid,ngrid)
 ###  
 ### setMethod("premergeClusters", signature=c(clus='list',m='mds'), function(clus,m,n,method='manual',plot=FALSE,...) 
 
-premergeClusters <- function(m,id,n,method='manual',recalcDist=TRUE,retCentroids=FALSE,plt=FALSE,verbose=FALSE)
+###premergeClusters <- function(m,id,n,method='manual',recalcDist=TRUE,retCentroids=FALSE,plt=FALSE,verbose=FALSE)
+#### Clean the noisy data (ie tiny clusters generated during the bottom-up hierarchical clustering process, and merge them into bigger ones until we can calculate their density)
+###  {
+###    cat(sprintf('\nPre-merging non-clustered points in nodules of size %d...\n',n))
+###    if (method=='manual') {
+###      sqdist <- function(x,y) apply(y,1,function(r) sqrt((x[1]-r[1])^2 + (x[2]-r[2])^2))
+###        #centroids <- do.call(rbind,by(m@points,id,mean)) # Compute mean of coordinates for every cluster
+###        centroids <- do.call(rbind,by(m@points,id,colMeans)) # Compute mean of coordinates for every cluster
+###        dist.centroids <- as.matrix(dist(centroids,method='euclidean')) # First call
+###        diag(dist.centroids) <- Inf
+###        conf <- 1
+###        while ((min(table(id))<=n)) # While there are still small clusters
+###          {
+###            if (plt==TRUE) { plot(m,point.col='white'); points(centroids,col=1:nrow(centroids),cex=2,lwd=2,pch=19) }
+###            id.small <- names(table(id)[table(id)<n]) # ID of small clusters        
+###            # Look for minimum distance (out of the diagonal) and reassign clusters, smaller to bigger
+###            if (length(id.small)>1)
+###              {
+###                inds <- which(dist.centroids[id.small,]==min(dist.centroids[id.small,]),arr.ind=TRUE)[1,] # In case of tie, get first one
+###                oldclus <- id.small[inds[1]]
+###                newclus <- names(table(id))[inds[2]]
+###              }
+###            else {
+###              oldclus <- id.small
+###              newclus <- names(table(id))[which.min(dist.centroids[id.small,])]
+###            }
+###            id[id==as.numeric(oldclus)] <- as.numeric(newclus)
+###            # recompute centroid for changed cluster
+###            centroids[as.character(newclus),] <- colMeans(m@points[id == as.numeric(newclus),]) # Just necessary to compute mean of coordinates for the changed cluster
+###            # recompute distances for changed cluster...
+###            #centroids <- do.call(rbind,by(m@points,id,mean)) # Compute mean of coordinates for every cluster
+###            centroids <- centroids[rownames(centroids) %in% as.character(id),] # Remove centroids from old cluster
+###            if (!recalcDist) { dist.centroids <- dist.centroids[rownames(centroids),rownames(centroids)] # Remove distance row and column for old cluster
+###              dist.centroids[newclus,] <- dist.centroids[,newclus] <- sqdist(centroids[newclus,],centroids)
+###              diag(dist.centroids) <- Inf }
+###            else { dist.centroids <- as.matrix(dist(centroids,method='euclidean')) # First call
+###                   diag(dist.centroids) <- Inf }         
+###            if (verbose) cat(sprintf('\nConfiguration %d: Assigned cluster %s to %s',conf,oldclus,newclus))
+###            conf <- conf+1
+###          }
+###        #ifelse(retCentroids,return(list(centroids=centroids,id=id)),return(id))
+###      if (retCentroids==TRUE) return(list(centroids=centroids,id=id)) else return(id)
+###      }
+###    else if (method=='auto') {
+###      cat('\nNot yet implemented...')
+###    }
+###  }
+
+premergeClusters <- function(m,id,n,method='manual',recalcDist=TRUE,retCentroids=FALSE,plt=FALSE,verbose=TRUE)
 # Clean the noisy data (ie tiny clusters generated during the bottom-up hierarchical clustering process, and merge them into bigger ones until we can calculate their density)
   {
     cat(sprintf('\nPre-merging non-clustered points in nodules of size %d...\n',n))
@@ -110,7 +158,7 @@ premergeClusters <- function(m,id,n,method='manual',recalcDist=TRUE,retCentroids
         dist.centroids <- as.matrix(dist(centroids,method='euclidean')) # First call
         diag(dist.centroids) <- Inf
         conf <- 1
-        while ((min(table(id))<=n)) # While there are still small clusters
+        while (min(table(id))<n) # While there are still small clusters
           {
             if (plt==TRUE) { plot(m,point.col='white'); points(centroids,col=1:nrow(centroids),cex=2,lwd=2,pch=19) }
             id.small <- names(table(id)[table(id)<n]) # ID of small clusters        
@@ -120,24 +168,32 @@ premergeClusters <- function(m,id,n,method='manual',recalcDist=TRUE,retCentroids
                 inds <- which(dist.centroids[id.small,]==min(dist.centroids[id.small,]),arr.ind=TRUE)[1,] # In case of tie, get first one
                 oldclus <- id.small[inds[1]]
                 newclus <- names(table(id))[inds[2]]
+                cat(sprintf('\nConfiguration %d: Assigning cluster %s to %s',conf,oldclus,newclus))
               }
             else {
               oldclus <- id.small
               newclus <- names(table(id))[which.min(dist.centroids[id.small,])]
+              #newclus <- names(table(id))[which(dist.centroids[id.small,])==min(dist.centroids[id.small,])]
+              cat(sprintf('\nConfiguration %d: Assigning cluster %s to %s',conf,oldclus,newclus))
             }
+            cat('\nReassigning cluster')
             id[id==as.numeric(oldclus)] <- as.numeric(newclus)
             # recompute centroid for changed cluster
+            cat('\nRecompute centroids')
             centroids[as.character(newclus),] <- colMeans(m@points[id == as.numeric(newclus),]) # Just necessary to compute mean of coordinates for the changed cluster
             # recompute distances for changed cluster...
             #centroids <- do.call(rbind,by(m@points,id,mean)) # Compute mean of coordinates for every cluster
             centroids <- centroids[rownames(centroids) %in% as.character(id),] # Remove centroids from old cluster
             if (!recalcDist) { dist.centroids <- dist.centroids[rownames(centroids),rownames(centroids)] # Remove distance row and column for old cluster
+                               cat('\nRecalcDist1')
               dist.centroids[newclus,] <- dist.centroids[,newclus] <- sqdist(centroids[newclus,],centroids)
               diag(dist.centroids) <- Inf }
             else { dist.centroids <- as.matrix(dist(centroids,method='euclidean')) # First call
-                   diag(dist.centroids) <- Inf }         
+                   cat('\nRecalcDist2')
+                   diag(dist.centroids) <- Inf }
             if (verbose) cat(sprintf('\nConfiguration %d: Assigned cluster %s to %s',conf,oldclus,newclus))
             conf <- conf+1
+            print(table(id)[table(id)>=70])
           }
         #ifelse(retCentroids,return(list(centroids=centroids,id=id)),return(id))
       if (retCentroids==TRUE) return(list(centroids=centroids,id=id)) else return(id)
@@ -146,7 +202,7 @@ premergeClusters <- function(m,id,n,method='manual',recalcDist=TRUE,retCentroids
       cat('\nNot yet implemented...')
     }
   }
-          
+
 setGeneric("clusGPS",
            function(d,m,h,sel=NULL,id=NULL,grid,ngrid=1000,densgrid=FALSE,preMerge=TRUE,type='hclust',method='average',samplesize=1,p.adjust=TRUE,k,mc.cores=1,set.seed=149,verbose=TRUE,minpoints=70,...) standardGeneric("clusGPS"))
 
