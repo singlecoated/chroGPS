@@ -168,28 +168,28 @@ premergeClusters <- function(m,id,n,method='manual',recalcDist=TRUE,retCentroids
                 inds <- which(dist.centroids[id.small,]==min(dist.centroids[id.small,]),arr.ind=TRUE)[1,] # In case of tie, get first one
                 oldclus <- id.small[inds[1]]
                 newclus <- names(table(id))[inds[2]]
-                cat(sprintf('\nConfiguration %d: Assigning cluster %s to %s',conf,oldclus,newclus))
+                #cat(sprintf('\nConfiguration %d: Assigning cluster %s to %s',conf,oldclus,newclus))
               }
             else {
               oldclus <- id.small
               newclus <- names(table(id))[which.min(dist.centroids[id.small,])]
               #newclus <- names(table(id))[which(dist.centroids[id.small,])==min(dist.centroids[id.small,])]
-              cat(sprintf('\nConfiguration %d: Assigning cluster %s to %s',conf,oldclus,newclus))
+              #cat(sprintf('\nConfiguration %d: Assigning cluster %s to %s',conf,oldclus,newclus))
             }
-            cat('\nReassigning cluster')
+            #cat('\nReassigning cluster')
             id[id==as.numeric(oldclus)] <- as.numeric(newclus)
             # recompute centroid for changed cluster
-            cat('\nRecompute centroids')
+            #cat('\nRecompute centroids')
             centroids[as.character(newclus),] <- colMeans(m@points[id == as.numeric(newclus),]) # Just necessary to compute mean of coordinates for the changed cluster
             # recompute distances for changed cluster...
             #centroids <- do.call(rbind,by(m@points,id,mean)) # Compute mean of coordinates for every cluster
             centroids <- centroids[rownames(centroids) %in% as.character(id),] # Remove centroids from old cluster
             if (!recalcDist) { dist.centroids <- dist.centroids[rownames(centroids),rownames(centroids)] # Remove distance row and column for old cluster
-                               cat('\nRecalcDist1')
+                               #cat('\nRecalcDist1')
               dist.centroids[newclus,] <- dist.centroids[,newclus] <- sqdist(centroids[newclus,],centroids)
               diag(dist.centroids) <- Inf }
             else { dist.centroids <- as.matrix(dist(centroids,method='euclidean')) # First call
-                   cat('\nRecalcDist2')
+                   #cat('\nRecalcDist2')
                    diag(dist.centroids) <- Inf }
             if (verbose) cat(sprintf('\nConfiguration %d: Assigned cluster %s to %s',conf,oldclus,newclus))
             conf <- conf+1
