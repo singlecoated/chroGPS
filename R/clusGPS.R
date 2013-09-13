@@ -193,7 +193,7 @@ premergeClusters <- function(m,id,n,method='manual',recalcDist=TRUE,retCentroids
                    diag(dist.centroids) <- Inf }
             if (verbose) cat(sprintf('\nConfiguration %d: Assigned cluster %s to %s',conf,oldclus,newclus))
             conf <- conf+1
-            print(table(id)[table(id)>=70])
+            #print(table(id)[table(id)>=70])
           }
         #ifelse(retCentroids,return(list(centroids=centroids,id=id)),return(id))
       if (retCentroids==TRUE) return(list(centroids=centroids,id=id)) else return(id)
