@@ -433,10 +433,11 @@ profileClusters <- function(x,uniqueCount=TRUE,weights,clus,i,minpoints,merged=F
       ans <- colSums(xx)/nrow(xx)
       if (log2)
         {
-          ans <- ifelse(ans>=tprop,ans/tprop,-1*(1/(ans/tprop)))
+          #ans <- ifelse(ans>=tprop,ans/tprop,-1*(1/(ans/tprop)))
+          ans <- log2(ans/tprop)
           ans[ans==-Inf] <- min(ans[is.finite(ans)]) - .1 # To remove -Inf
           ans[ans==Inf] <- max(ans[is.finite(ans)]) + .1 # To remove +Inf
-          ans <- sign(ans) * log2(abs(ans))
+          #ans <- sign(ans) * log2(abs(ans))
         }
       else ans <- ans-tprop
       ans
@@ -445,7 +446,6 @@ profileClusters <- function(x,uniqueCount=TRUE,weights,clus,i,minpoints,merged=F
     if (!missing(weights))
       {
         colnames(cprop) <- names(weights)
-        m <- colMeans(cprop)
         cprop <- do.call(cbind,lapply(sort(unique(colnames(cprop))),function(i) rowMeans(as.data.frame(cprop[,colnames(cprop) %in% i]))))
         colnames(cprop) <- sort(unique(names(weights)))
       }
