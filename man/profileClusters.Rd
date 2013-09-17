@@ -11,7 +11,7 @@ observed for all elements. Results are returned as a numerical
 matrix, easily visualized in the shape of a classical heatmap.
 }
 \usage{
-profileClusters(x, uniqueCount = TRUE, clus, i, minpoints, merged = FALSE, log2 = TRUE, plt = FALSE)
+profileClusters(x, uniqueCount = TRUE, weights, clus, i, minpoints, merged = FALSE, log2 = TRUE, plt = FALSE)
 }
 \arguments{
   \item{x}{
@@ -22,6 +22,12 @@ clusters, indicating 1 for binding of factor j in gene i, 0 otherwise.
 Logical value to indicate if clusters come from epigenes (identical rows
 in x are merged into a single one) or genes (every row in x is
 mantained). See help for \code{uniqueCount} for details.
+}
+\item{weights}{
+Named vector analog to that on \code{distGPS}. Names are used as unique
+column names (i.e. epigenetic factors) so that enrichment profiles for 
+replicates of the same epigenetic factor can be merged into a single element by computing its average
+enrichment (arithmetic mean).
 }
 \item{clus}{
 \code{clusGPS} object with epigenetic clusters generated from pairwise

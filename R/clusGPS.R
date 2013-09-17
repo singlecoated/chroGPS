@@ -384,7 +384,37 @@ normCoords <- function(coords,newrange)
   coords <- coords * newrange
 }
 
-profileClusters <- function(x,uniqueCount=TRUE,clus,i,minpoints,merged=FALSE,log2=TRUE,plt=FALSE)
+### profileClusters <- function(x,uniqueCount=TRUE,clus,i,minpoints,merged=FALSE,log2=TRUE,plt=FALSE)
+###   # Computes enrichment or depletion of marks in a given cluster
+###   # X is table with epigenes / factors, h is a valid clustering for that matrix, k is a cluster cut configuration
+###   # n is used to consider only clusters with more than or n points, 0 for all points
+###   # Univ is used to compute average factor distribution, if TRUE all genes are considered, if FALSE only genes in clusters where ngenes>=n are considered
+###   # Result is given in the shape of a heatmap
+###   {
+###     if (missing(minpoints) & !merged) stop('For non-merged clusterings the minimum cluster size considered in the clustering is needed')
+###     if (uniqueCount) { x <- uniqueCount(x); x <- x[,-c(1,ncol(x))] }
+###     id <- clus@clus[[as.character(i)]]$id # If this come from merged clusters, cluster 0 is the one for elements from clusters below the minpoint number specified when creating
+###     if (merged) idx <- as.numeric(names(table(id))) else idx <- as.numeric(names(table(id)[table(id)>=minpoints])) # For non-merged clusters, ignore cluster ID for clusters below minpoints
+###     # Compute observed proportion of factor distribution in full dataset
+###     tprop <- colSums(x)/nrow(x); names(tprop) <- colnames(x)
+###     # Compute same proportion for each cluster and return ratios against tprop
+###     cprop <- do.call(rbind,lapply(idx, function(y) {
+###       xx <- x[id==y,]
+###       ans <- colSums(xx)/nrow(xx)
+###       ans <- ans / tprop
+###       if (log2)
+###         {
+###           ans <- log2(ans)
+###           ans[ans==-Inf] <- min(ans[is.finite(ans)]) - .1 # To remove -Inf
+###           ans[ans==Inf] <- max(ans[is.finite(ans)]) + .1 # To remove +Inf
+###         }     
+###       ans
+###     }))
+###     if (merged) rownames(cprop) <- c('None',colnames(clus@clus[[as.character(i)]]$pointprob)[-1:-2]) else rownames(cprop) <- colnames(clus@clus[[as.character(i)]]$pointprob)[-1:-2]
+###     cprop
+###   }
+
+profileClusters <- function(x,uniqueCount=TRUE,weights,clus,i,minpoints,merged=FALSE,log2=TRUE,plt=FALSE)
   # Computes enrichment or depletion of marks in a given cluster
   # X is table with epigenes / factors, h is a valid clustering for that matrix, k is a cluster cut configuration
   # n is used to consider only clusters with more than or n points, 0 for all points
@@ -397,20 +427,28 @@ profileClusters <- function(x,uniqueCount=TRUE,clus,i,minpoints,merged=FALSE,log
     if (merged) idx <- as.numeric(names(table(id))) else idx <- as.numeric(names(table(id)[table(id)>=minpoints])) # For non-merged clusters, ignore cluster ID for clusters below minpoints
     # Compute observed proportion of factor distribution in full dataset
     tprop <- colSums(x)/nrow(x); names(tprop) <- colnames(x)
-    # Compute same proportion for each cluster and return ratios against tprop
+    # Compute same proportion for each cluster and return log2 ratios against tprop    
     cprop <- do.call(rbind,lapply(idx, function(y) {
       xx <- x[id==y,]
       ans <- colSums(xx)/nrow(xx)
-      ans <- ans / tprop
       if (log2)
         {
-          ans <- log2(ans)
+          ans <- ifelse(ans>=tprop,ans/tprop,-1*(1/(ans/tprop)))
           ans[ans==-Inf] <- min(ans[is.finite(ans)]) - .1 # To remove -Inf
           ans[ans==Inf] <- max(ans[is.finite(ans)]) + .1 # To remove +Inf
-        }     
+          ans <- sign(ans) * log2(abs(ans))
+        }
+      else ans <- ans-tprop
       ans
     }))
     if (merged) rownames(cprop) <- c('None',colnames(clus@clus[[as.character(i)]]$pointprob)[-1:-2]) else rownames(cprop) <- colnames(clus@clus[[as.character(i)]]$pointprob)[-1:-2]
+    if (!missing(weights))
+      {
+        colnames(cprop) <- names(weights)
+        m <- colMeans(cprop)
+        cprop <- do.call(cbind,lapply(sort(unique(colnames(cprop))),function(i) rowMeans(as.data.frame(cprop[,colnames(cprop) %in% i]))))
+        colnames(cprop) <- sort(unique(names(weights)))
+      }
     cprop
   }
 
