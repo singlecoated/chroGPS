@@ -858,7 +858,7 @@ distribution of epigenetic factors seen in Figure \ref{fig:merge2}.
 \footnotesize
 
 <<figprofile1>>=
-p1 <- profileClusters(s2.tab, uniqueCount = TRUE, clus3,i=max(cutree(h,h=0.2)), 
+p1 <- profileClusters(s2.tab, uniqueCount = TRUE, clus=clus3,i=max(cutree(h,h=0.2)), 
 log2 = TRUE, plt = FALSE, minpoints=0)
 # Requires gplots library
 library(gplots)
