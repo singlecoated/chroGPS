@@ -109,7 +109,7 @@ boostMDS <- function(D, Y, rate=.01, maxit=50, tol=0.001, samplesize, verbose=TR
     } else r2new <- unlist(lapply(rateseq,targetf,resample=(samplesize<1)))
     #Consider quadratic step size
     fit <- lm(r2new ~ rateseq + I(rateseq^2))
-    ropt <- -coef(fit)[2]/(2*coef(fit)[3])
+    ropt <- -stats::coef(fit)[2]/(2*stats::coef(fit)[3])
     rateseq <- c(rateseq, ropt)
     #cat("\nResampling is",(samplesize<1))
     r2new <- c(r2new,targetf(ropt,resample=(samplesize<1)))
@@ -175,7 +175,7 @@ setMethod("mds", signature=c(d="distGPS",m="missing"),
   if (type=='isoMDS') # If isoMDS of a factors map, compute scale factor so that dr and dapprox have the same dynamic range
     {
       # Old computation mode with linear model, takes forever to compute if used with big MDS objects, that is because it stores the residues...
-      #c <- coef(lm(d[upper.tri(d)]~-1+dapprox[upper.tri(dapprox)]))
+      #c <- stats::coef(lm(d[upper.tri(d)]~-1+dapprox[upper.tri(dapprox)]))
       # New computation
       c <- sum(dapprox[upper.tri(dapprox)]*d[upper.tri(d)])/sum(dapprox[upper.tri(dapprox)]^2)
       dapprox <- dapprox * c
