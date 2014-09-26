@@ -399,8 +399,8 @@ setMethod("splitDistGPS", signature(x='matrix'), function(x, metric, split=.5, o
 
 setMethod("splitDistGPS", signature(x='distGPS'), function(x, split=.5, overlap=0.05, reshuffle=TRUE,set.seed=149,mc.cores=1) {
   # Splits an already existing distGPS object into N distGPS objects across the main distance matrix diagonal
+  metric <- x@metric
   x <- x@d
-  metric <- d@metric
   split <- floor(nrow(x) * split)
   overlap <- floor(nrow(x) * overlap)
   if (reshuffle) {
