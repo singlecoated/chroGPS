@@ -6,10 +6,10 @@ Date: 2014-09-26
 Author: Oscar Reina, David Rossell
 Maintainer: Oscar Reina <oscar.reina@irbbarcelona.org>
 Description: We provide intuitive maps to visualize the association between genetic elements, with emphasis on epigenetics. The approach is based on Multi-Dimensional Scaling. We provide several sensible distance metrics, and adjustment procedures to remove systematic biases typically observed when merging data obtained under different technologies or genetic backgrounds.
-License: GPL (>=2)
-Depends: R (>= 2.13.0), IRanges, methods, Biobase, MASS, graphics, stats, rgl, changepoint
+License: GPL (>=2.14)
+Depends: R (>= 2.13.0), IRanges, methods, Biobase, MASS, graphics, stats, changepoint
 Imports: graphics, cluster, DPpackage, ICSNP
-Enhances: parallel, XML
+Enhances: parallel, XML, rgl
 Collate: adjustPeaks.R distGPS.R domainDist.R mds-class.R mds.R procrustesAdj.R clusGPS.R geneSetGPS.R getmodEncode.R gff2RDList.R gps2xgmml.R
 LazyLoad: yes
 biocViews: Visualization, Clustering
