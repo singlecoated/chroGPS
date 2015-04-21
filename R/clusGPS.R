@@ -523,13 +523,13 @@ setMethod("mergeClusters", signature=c(clus="list"), function (clus, clus.method
     if (doMerge) { mclus[[z]] <- clus; z <- z + 1 }
   }
   # Computing changepoint to identify 'cliff' in the maximum overlap between all possible pairwise merging
-  if (cpt.method == "mean") cpt <- cpt.mean(log(maxOverlap),Q=1) else if (changepoint:::cpt.method == "var") cpt <- changepoint:::cpt.var(log(maxOverlap),Q=1)
+  if (cpt.method == "mean") cpt <- cpt.mean(log(maxOverlap),Q=1) else if (changepoint::cpt.method == "var") cpt <- changepoint::cpt.var(log(maxOverlap),Q=1)
   mycpt <- maxOverlap[[cpt@cpts[1] - brake]]
   mycpt.auto <- maxOverlap[[cpt@cpts[1] - 1]]
   if (plt==TRUE) {
     cptdata <- data.set(cpt)
     cptpoints <- cpts(cpt)
-    changepoint:::plot(cpt,pch=19,cex=1.5,ylim=c(min(cptdata),1),cpt.col=NA,xlab='Merging step',ylab=ifelse(logscale,'maxOverlap (log)','maxOverlap')) # Draw points but not cpt line
+    changepoint::plot(cpt,pch=19,cex=1.5,ylim=c(min(cptdata),1),cpt.col=NA,xlab='Merging step',ylab=ifelse(logscale,'maxOverlap (log)','maxOverlap')) # Draw points but not cpt line
     text(x=1:length(maxOverlap),y=cptdata,round(maxOverlap,2),pos=3)
     text(x=.5*length(maxOverlap),y=0.5,'# of clusters by overlap threshold')
     axis(3,at=1:length(maxOverlap),labels=length(maxOverlap):1,padj=5,tick=FALSE)
