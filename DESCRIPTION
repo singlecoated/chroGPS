@@ -1,7 +1,7 @@
 Package: chroGPS
 Type: Package
 Title: chroGPS: visualizing the epigenome
-Version: 1.14.0
+Version: 1.15.0
 Date: 2015-04-20
 Author: Oscar Reina, David Rossell
 Maintainer: Oscar Reina <oscar.reina@irbbarcelona.org>
