@@ -30,7 +30,7 @@ cat("Object of class splitDistGPS storing", length(object@d),  "distGPS objects 
 # Methods and Functions
 setGeneric("distGPS", function(x, metric='tanimoto', weights, uniqueRows=FALSE, genomelength=NULL, mc.cores=1) standardGeneric("distGPS"))
 
-setMethod("distGPS", signature(x='RangedDataList'), function(x, metric='tanimoto', weights, uniqueRows=FALSE, genomelength=NULL, mc.cores=1) {
+setMethod("distGPS", signature(x='GRangesList'), function(x, metric='tanimoto', weights, uniqueRows=FALSE, genomelength=NULL, mc.cores=1) {
   # if (metric %in% c('tanimoto','avgdist','realtanimoto')) {
   if (metric %in% c('tanimoto','avgdist')) {
      ans <- rdldist(x=x,metric=metric,mc.cores=mc.cores)
@@ -97,13 +97,13 @@ avgdistpair.old <- function(z1,z2) {
 #   }
 
 rdldist <- function(x,metric,genomelength=NULL,mc.cores=1) {
-# Compute all pairwise Tanimoto distances between all elements in a RangedDataList object x
-# - x: RangedDataList object
+# Compute all pairwise Tanimoto distances between all elements in a GRangesList object x
+# - x: GRangesList object
 # - metric: 'avgdist' or 'tanimoto'
 # - genomelength: length of the genome to be used in chisqDist. If missing length is auto calculated to fit everything.
 # - mc.cores: number of cores to use in parallel computations (passed on to mclapply)
-  # Bypass in case IRanges is older than 1.18
-  if (installed.packages()['IRanges','Version']<'1.18.0') { avgdistpair <- avgdistpair.old; realtanipair <- realtanipair.old }
+  # Bypass in case GenomicRanges is older than 1.18
+  if (installed.packages()['GenomicRanges','Version']<'1.18.0') { avgdistpair <- avgdistpair.old; realtanipair <- realtanipair.old }
   #if (metric=='avgdist') { distfun <- avgdistpair } else if (metric=='tanimoto') { distfun <- tanipair } else if (metric=='realtanimoto') { distfun <- realtanipair }
   if (metric=='avgdist') { distfun <- avgdistpair } else if (metric=='tanimoto') { distfun <- realtanipair }
   # Branch for alternative chisquare metric deprecated
@@ -138,9 +138,9 @@ chisqdist2 <- function(x,seqlen=NULL,mc.cores=1)
       mnames <- intersect(names(y),names(z)) # Matching names
       only.y <- setdiff(names(y),names(z))
       only.z <- setdiff(names(z),names(y))
-      d <- sum(as.data.frame(IRanges::intersect(ranges(y[mnames]),ranges(z[mnames])))$width) # Intersect, just for the common chromosomes
-      c <- sum(as.data.frame(IRanges::setdiff(ranges(y[mnames]),ranges(z[mnames])))$width) + ifelse(length(only.y)==0,0,sum(width(reduce(y[only.y])))) # A not in B + chromosomes only in A
-      b <- sum(as.data.frame(IRanges::setdiff(ranges(z[mnames]),ranges(y[mnames])))$width) + ifelse(length(only.z)==0,0,sum(width(reduce(z[only.z])))) # B not in A + chromosomes only in B
+      d <- sum(as.data.frame(GenomicRanges::intersect(ranges(y[mnames]),ranges(z[mnames])))$width) # Intersect, just for the common chromosomes
+      c <- sum(as.data.frame(GenomicRanges::setdiff(ranges(y[mnames]),ranges(z[mnames])))$width) + ifelse(length(only.y)==0,0,sum(width(reduce(y[only.y])))) # A not in B + chromosomes only in A
+      b <- sum(as.data.frame(GenomicRanges::setdiff(ranges(z[mnames]),ranges(y[mnames])))$width) + ifelse(length(only.z)==0,0,sum(width(reduce(z[only.z])))) # B not in A + chromosomes only in B
       a <- seqlen - d - c - b # Rest of the genome
       t <- matrix(c(a,b,c,d),nrow=2,ncol=2,byrow=TRUE)
       return(as.numeric(chisq.test(t)$statistic))
@@ -150,7 +150,7 @@ chisqdist2 <- function(x,seqlen=NULL,mc.cores=1)
 
 
 chisqdist <- function(x,mc.cores=1) { # Old chisquare calculation, deprecated
-# Compute all pairwise chi-square distances between all elements in a RangedDataList object x
+# Compute all pairwise chi-square distances between all elements in a GRangesList object x
 # Note: chi-square dist is between objects (i,j) with frequencies (i.e. coverage) ci and cj is defined as
 #         sum (ci-cj)^2/ctot
 # where ctot is the total coverage across all samples, i.e. ctot= c1+c2+...+cp, where p is the number of samples

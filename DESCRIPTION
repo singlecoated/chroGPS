@@ -1,13 +1,13 @@
 Package: chroGPS
 Type: Package
 Title: chroGPS: visualizing the epigenome
-Version: 1.17.0
-Date: 2015-04-20
+Version: 1.20.0
+Date: 2016-10-05
 Author: Oscar Reina, David Rossell
 Maintainer: Oscar Reina <oscar.reina@irbbarcelona.org>
 Description: We provide intuitive maps to visualize the association between genetic elements, with emphasis on epigenetics. The approach is based on Multi-Dimensional Scaling. We provide several sensible distance metrics, and adjustment procedures to remove systematic biases typically observed when merging data obtained under different technologies or genetic backgrounds.
 License: GPL (>=2.14)
-Depends: R (>= 2.13.0), IRanges, methods, Biobase, MASS, graphics, stats, changepoint
+Depends: R (>= 3.1.0), GenomicRanges, methods, Biobase, MASS, graphics, stats, changepoint
 #Imports: graphics, cluster, DPpackage, ICSNP
 Imports: cluster, DPpackage, ICSNP
 Enhances: parallel, XML, rgl

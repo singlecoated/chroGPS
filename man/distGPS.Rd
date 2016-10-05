@@ -1,7 +1,7 @@
 \name{distGPS}
 \alias{distGPS}
 \alias{distGPS-methods}
-\alias{distGPS,RangedDataList-method}
+\alias{distGPS,GRangesList-method}
 \alias{distGPS,data.frame-method}
 \alias{distGPS,matrix-method}
 \alias{as.matrix,distGPS-method}
@@ -21,7 +21,7 @@ depends on the class of the first argument (see details section).
   
   distGPS:
   
-  \item{signature(x='RangedDataList')}{ Each element in \code{x} is
+  \item{signature(x='GRangesList')}{ Each element in \code{x} is
   assumed to indicate the binding sites for a different sample,
   e.g. epigenetic factor. Typically \code{space(x)} indicates the
   chromosome, \code{start(x)} the start position and \code{end(x)} the
@@ -83,9 +83,9 @@ distGPS(x, metric='tanimoto', weights, uniqueRows=FALSE, genomelength=NULL, mc.c
   dissimilarities (distances) between objects.
 }
 \details{
-  For \code{RangedDataList} objects, distances are defined as follows.
+  For \code{GRangesList} objects, distances are defined as follows.
   
-  Let \code{a1} and \code{a2} be two \code{RangedData} objects.
+  Let \code{a1} and \code{a2} be two \code{GRanges} objects.
   Define as \code{n1} the number of \code{a1} intervals overlapping with
   some interval in \code{a2}. Define \code{n2} analogously.
   The Tanimoto distance between \code{a1} and \code{a2} is defined as 

@@ -70,12 +70,12 @@ s2
 
 \normalsize
 
-\texttt{s2} is a \texttt{RangedDataList} object storing the
+\texttt{s2} is a \texttt{GRangesList} object storing the
 binding sites for 20 Drosophila melanogaster S2-DRSC sample
 proteins. Data was retrieved from the modEncode website
 (www.modencode.org) and belongs to the public subset of the Release 29.1 dataset. GFF files
-were downloaded, read and formatted into individual RangedData
-objects, stored later into a \texttt{RangedDataList} (see functions \texttt{getURL} and 
+were downloaded, read and formatted into individual GRanges
+objects, stored later into a \texttt{GRangesList} (see functions \texttt{getURL} and 
 \texttt{gff2RDList} for details.) For shortening computing time for the dynamic generation of this document, some of the distances between epigenetic factors have been precomputed and stored in the \texttt{toydists} object.
   
 \subsection{Building chroGPS$^{factors}$ maps}
@@ -174,7 +174,7 @@ S2 ChIP-seq data obtained from NCBI GEO GSE19325, \url{http://www.ncbi.nlm.nih.g
 <<figprocrustes1>>=
 data(s2Seq)
 s2Seq
-# d2 <- distGPS(c(s2,s2Seq),metric='avgdist')
+# d2 <- distGPS(c(reduce(s2),reduce(s2Seq)),metric='avgdist')
 mds2 <- mds(d2,k=2,type='isoMDS')
 cols <- c(as.character(s2names$Color),as.character(s2SeqNames$Color))
 sampleid <- c(as.character(s2names$Factor),as.character(s2SeqNames$Factor))
@@ -231,7 +231,7 @@ data (poorer resolution).
 \footnotesize
  
 <<figpeakwidth1>>=
-s2.pAdj <- adjustPeaks(c(s2,s2Seq),adjust=adjust,sampleid=sampleid,logscale=TRUE)
+s2.pAdj <- adjustPeaks(c(reduce(s2),reduce(s2Seq)),adjust=adjust,sampleid=sampleid,logscale=TRUE)
 # d3 <- distGPS(s2.pAdj,metric='avgdist')
 mds4 <- mds(d3,k=2,type='isoMDS')
 par(mar=c(0,0,0,0),xaxt='n',yaxt='n')

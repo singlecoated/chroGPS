@@ -1,4 +1,4 @@
-import(IRanges,DPpackage,ICSNP,changepoint,Biobase,MASS,methods)
+import(GenomicRanges,DPpackage,ICSNP,changepoint,Biobase,MASS,methods)
 importFrom(cluster, agnes)
 #importFrom(graphics, plot)
 #importFrom(changepoint, cpt.mean, cpt.var)

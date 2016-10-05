@@ -1,7 +1,7 @@
 \name{adjustPeaks}
 \alias{adjustPeaks}
 \alias{adjustPeaks-methods}
-\alias{adjustPeaks,RangedDataList-method}
+\alias{adjustPeaks,GRangesList-method}
 \title{Adjust peak width so that samples obtained under different
   conditions become comparable.}
 \description{
@@ -14,7 +14,7 @@
 \section{Methods}{
 \describe{
 
-\item{signature(x='RangedDataList')}{ Each element in \code{x} contains
+\item{signature(x='GRangesList')}{ Each element in \code{x} contains
   the binding sites for a different sample. The start, end and
   chrosomome of each binding sites should be accessed via  \code{start},
   \code{end} and \code{space}. }
@@ -24,7 +24,7 @@
 adjustPeaks(x, adjust, sampleid, logscale = TRUE) 
 }
 \arguments{
-  \item{x}{\code{RangedDataList} indicating the binding sites for each sample/experiment.}
+  \item{x}{\code{GRangesList} indicating the binding sites for each sample/experiment.}
   \item{adjust}{Vector indicating the adjustment factor, i.e. the
     condition under which each sample has been obtained.}
   \item{sampleid}{Vector containing the sample
@@ -37,7 +37,7 @@ adjustPeaks(x, adjust, sampleid, logscale = TRUE)
     binding site).}
 }
 \value{
-  \code{RangedDataList} object with adjusted widths.
+  \code{GRangesList} object with adjusted widths.
 }
 \details{
   In a sense, the peak calling resolution is decreased so that they

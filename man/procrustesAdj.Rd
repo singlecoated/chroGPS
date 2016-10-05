@@ -68,23 +68,44 @@ procrustesAdj(mds1, d, adjust, sampleid)
   \code{\link{mds}} to create MDS-oriented objects.
 }
 \examples{
-st1 <- runif(100,1,1000); st2 <- runif(100,500,1500)  #Peak starts
-st3 <- runif(100,1000,2000); st4 <- runif(100,1500,2000)
-#cond1: more precise technology
-cond1 <- RangedDataList(s1=RangedData(IRanges(st1,st1+100)),s2=RangedData(IRanges(st2,st2+100)),s3=RangedData(IRanges(st3,st3+100)))
-#cond2: less precise
-cond2 <- RangedDataList(s1=RangedData(IRanges(st1-200,st1+300)),s2=RangedData(IRanges(st2-200,st2+300)),s5=RangedData(IRanges(st4-200,st4+300)))
-x <- c(cond1,cond2)
-d <- distGPS(x,metric='tanimoto')  #compute distances
-mds1 <- mds(d)  #MDS
-#Adjust via Procrustes
-mds2 <- procrustesAdj(mds1,d,adjust=rep(c('seq','chip'),each=3),sampleid=names(x))
-plot(mds1)
-plot(mds2)
-#Adjust via peak width
-xadj <- adjustPeaks(x,adjust=rep(c('seq','chip'),each=3),sampleid=names(x))
-dadj <- distGPS(xadj)
-mds3 <- mds(dadj)
-plot(mds3)
+# Unadjusted map
+data(s2)
+data(s2Seq)
+data(toydists) # precomputed distances
+# d2 <- distGPS(c(reduce(s2),reduce(s2Seq)),metric='avgdist') # not run
+mds2 <- mds(d2,k=2,type='isoMDS')
+cols <- c(as.character(s2names$Color),as.character(s2SeqNames$Color))
+sampleid <-
+  c(as.character(s2names$Factor),as.character(s2SeqNames$Factor))
+pchs <- rep(c(20,17),c(length(s2),length(s2Seq)))
+point.cex <- rep(c(8,5),c(length(s2),length(s2Seq)))
+par(mar=c(2,2,2,2))
+plot(mds2,drawlabels=TRUE,point.pch=pchs,point.cex=point.cex,text.cex=.7,
+point.col=cols,text.col='black',labels=sampleid,font=2)
+#legend('topleft',legend=sprintf('R2=%.3f - %stress=%.3f',getR2(mds2),getStress(mds2)),bty='n',cex=1)
+legend('topright',legend=c('ChIP-Chip','ChIP-Seq'),pch=c(20,17),pt.cex=c(1.5,1))
+
+# Procrustes Adjusted map
+adjust <- rep(c('chip','seq'),c(length(s2),length(s2Seq)))
+sampleid <-
+c(as.character(s2names$Factor),as.character(s2SeqNames$Factor))
+mds3 <- procrustesAdj(mds2,d2,adjust=adjust,sampleid=sampleid)
+par(mar=c(0,0,0,0),xaxt='n',yaxt='n')
+plot(mds3,drawlabels=TRUE,point.pch=pchs,point.cex=point.cex,text.cex=.7,
+point.col=cols,text.col='black',labels=sampleid,font=2)
+#legend('topleft',legend=sprintf('R2=%.3f - %stress=%.3f',getR2(mds3),getStress(mds3)),bty='n',cex=1)
+legend('topright',legend=c('ChIP-Chip','ChIP-Seq'),pch=c(20,17),pt.cex=c(1.5,1))
+
+# Peak Width Adjusted map
+s2.pAdj <-
+adjustPeaks(c(reduce(s2),reduce(s2Seq)),adjust=adjust,sampleid=sampleid,logscale=TRUE)
+# d3 <- distGPS(s2.pAdj,metric='avgdist')
+mds4 <- mds(d3,k=2,type='isoMDS')
+par(mar=c(0,0,0,0),xaxt='n',yaxt='n')
+plot(mds4,drawlabels=TRUE,point.pch=pchs,point.cex=point.cex,text.cex=.7,
+point.col=cols,text.col='black',labels=sampleid,font=2)
+#legend('topleft',legend=sprintf('R2=%.3f - %s=%.3f',getR2(mds4),getStress(mds4)),bty='n',cex=1)
+legend('topright',legend=c('ChIP-Chip','ChIP-Seq'),pch=c(20,17),pt.cex=c(1.5,1))
+
 }
 \keyword{multivariate,cluster}

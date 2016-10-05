@@ -15,7 +15,7 @@ gff2RDList(filenames,listnames,dir,quote=NULL,chrprefix='')
   }
   \item{listnames}{
     Names for each read filename, will be used as names of the returned
-    \code{RangedDataList}. If not given, filenames will be used as listnames.
+    \code{GRangesList}. If not given, filenames will be used as listnames.
   }
   \item{dir}{
     Directory where the GFF3 files are located.
@@ -29,7 +29,7 @@ gff2RDList(filenames,listnames,dir,quote=NULL,chrprefix='')
   }
 }
 \value{
-  A list with Enriched and Depleted binding sites, each one is an object of class \code{RangedDataList} with the \code{RangedData}
+  A list with Enriched and Depleted binding sites, each one is an object of class \code{GRangesList} with the \code{GRanges}
   objects containing the respective enriched or depleted binding sites from each GFF3 file.
 }
 \examples{

@@ -25,3 +25,7 @@ Other changes from Version 1.3
 - Introduced mahalanobis distance in distGPS
 - Updated examples and documentation
 - Fixed bug in boostMDS, not properly using random seed in all cases
+
+Major changes in Version 1.20
+
+- Replaced GRanges/GRangesList class with GRanges/GRangesList

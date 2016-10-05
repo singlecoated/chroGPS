@@ -7,11 +7,11 @@ changewidth <- function(z1,z2,logscale) {
 
 setGeneric("adjustPeaks", function(x, adjust, sampleid, logscale=TRUE) standardGeneric("adjustPeaks"))
 
-setMethod("adjustPeaks", signature(x='RangedDataList'), function(x, adjust, sampleid, logscale=TRUE) {
+setMethod("adjustPeaks", signature(x='GRangesList'), function(x, adjust, sampleid, logscale=TRUE) {
   if (length(adjust)!=length(sampleid)) stop('adjust and sampleid must have the same length')
   if (length(adjust)!=length(x)) stop('length(adjust) does not match length(x)')
   allsamples <- unique(sampleid)
-  sampleincond <- do.call(cbind,tapply(sampleid,adjust,function(z) allsamples %in% z))  
+  sampleincond <- do.call(cbind,tapply(sampleid,adjust,function(z) allsamples %in% z))
   rownames(sampleincond) <- allsamples
   #Log-scale
   if (logscale) logw <- lapply(as.list(x),function(z) log(width(z))) else logw <- lapply(x,function(z) width(z))
